@@ -101,3 +101,20 @@ body { -webkit-font-smoothing: antialiased; }
   .spin { animation: spin 1.6s linear infinite; }
   .sweep::after { animation: none; background: none; }
 }
+
+/* ---- landing hero: travelling paths + letter reveal ---- */
+@keyframes flow   { to { stroke-dashoffset: -2400; } }
+@keyframes letter { from { opacity: 0; transform: translateY(42px); } to { opacity: 1; transform: none; } }
+
+.flow {
+  stroke-dasharray: 260 1400;
+  animation-name: flow;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.letter { animation: letter .62s cubic-bezier(.17,.84,.44,1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .flow { animation: none; stroke-dasharray: none; }
+  .letter { animation: none; }
+}

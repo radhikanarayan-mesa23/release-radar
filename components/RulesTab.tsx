@@ -1,6 +1,7 @@
 'use client';
 import { useMemo, useState, useTransition } from 'react';
 import Chip, { priorityLabel } from './Chip';
+import FlowButton from './FlowButton';
 import { applyRules, priorityFromRules, type RuleConfig } from '@/lib/rules';
 
 export interface RulesPayload {
@@ -138,10 +139,7 @@ export default function RulesTab({ initial, admin }: { initial: RulesPayload; ad
 
       {admin && (
         <div className="flex flex-wrap items-center gap-3">
-          <button onClick={save} disabled={pending}
-            className="glow rounded-xl px-4 py-2 text-sm font-semibold text-ink0 disabled:opacity-40">
-            {pending ? 'Saving…' : 'Save rubric'}
-          </button>
+          <FlowButton text="Save rubric" pendingText="Saving…" pending={pending} onClick={save} />
           {msg && <span className="text-xs text-accent">{msg}</span>}
         </div>
       )}

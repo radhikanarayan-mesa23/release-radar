@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import BackgroundPaths from '@/components/BackgroundPaths';
 import { sql } from '@/lib/db';
 
 export const metadata: Metadata = {
-  title: 'What it does',
+  title: 'Welcome',
   description: 'Security fixes and breaking changes first, every Monday 08:00 IST.',
 };
 export const dynamic = 'force-dynamic';
@@ -33,8 +34,15 @@ export default async function About() {
   const s = await stats();
   return (
     <div className="mx-auto max-w-4xl">
+      <BackgroundPaths
+        title="Welcome to your repo check"
+        subtitle="Two dozen repositories, read every Monday at 08:00 IST. Security fixes and breaking changes first, everything routine folded away."
+        cta="Open the dashboard"
+        href="/"
+      />
+
       <section className="rise">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">Release Radar</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">Why it exists</p>
         <h1 className="mt-3 text-3xl font-semibold leading-[1.12] tracking-tight sm:text-5xl">
           A security patch once sat unread
           <span className="block bg-gradient-to-r from-accent to-accent2 bg-clip-text text-transparent">

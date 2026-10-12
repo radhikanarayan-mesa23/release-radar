@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Chip, { priorityLabel, PRIORITY_HEX } from './Chip';
 import ReleaseCard, { type CardItem, type CardTicket, type TeamOption } from './ReleaseCard';
 import CountUp from './CountUp';
+import FlowButton from './FlowButton';
 import Assistant from './Assistant';
 import type { DigestPayload } from '@/lib/pipeline';
 import type { TicketRow } from '@/lib/queries';
@@ -399,15 +400,10 @@ export default function Home({
                     Email me
                   </label>
                 </div>
-                <button onClick={() => post('/api/run', { days, email: emailMe }, 'Fetching releases and summarising…')}
-                  disabled={pending}
-                  className="glow lift relative mt-3 w-full overflow-hidden rounded-xl px-3 py-2.5 text-sm font-semibold text-ink0 disabled:cursor-wait">
-                  <span className="relative z-10 flex items-center justify-center gap-2">
-                    {pending && <Spinner />}
-                    {pending ? 'Running…' : 'Run now'}
-                  </span>
-                  {pending && <span className="sweep absolute inset-0 z-0" aria-hidden />}
-                </button>
+                <div className="mt-3">
+                  <FlowButton full text="Run now" pendingText="Running…" pending={pending}
+                    onClick={() => post('/api/run', { days, email: emailMe }, 'Fetching releases and summarising…')} />
+                </div>
                 {pending && stage && (
                   <p className="fade mt-2 text-center text-xs text-accent" aria-live="polite">{stage}</p>
                 )}
@@ -631,14 +627,6 @@ function Reopen({ ticketId }: { ticketId: number }) {
       </button>
       {err && <span className="text-high">{err}</span>}
     </>
-  );
-}
-
-function Spinner() {
-  return (
-    <svg viewBox="0 0 24 24" className="spin h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5">
-      <path d="M12 3a9 9 0 1 0 9 9" strokeLinecap="round" />
-    </svg>
   );
 }
 
