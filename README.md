@@ -37,6 +37,7 @@ bell confirms the Monday run already happened before she opened the tab.
 - **Rules first, AI second.** `lib/rules.ts` is pure and tested. Final flags = **rule flags OR Gemini flags**: the model may *add* a flag it spots, never argue one away. A model outage cannot hide a CVE.
 - **Example-only changes are not security.** Lines about `examples/`, docs, tests, playgrounds or devDependencies are dropped before the security regex runs, so `chore(examples): …fix RCE…` stays LOW (fixture F13). Without this, a quarter of dependency-bot releases would scream red.
 - **Repository Buddy is grounded, not open-ended.** The in-app assistant answers only from the digest already stored in Neon plus her open tickets — never a live fetch and never the open web. Ask it about a repo she does not track and it says the context has no such release instead of inventing a version or a CVE. It runs on its own code path, so the one-batched-call rule for digests below is untouched; a question costs about ₹0.12.
+- **Spend guards, because the demo is public.** `/api/chat` is open and the demo passcode is published, so the endpoints that cost money are capped per visitor and per day (`lib/budget.ts`, counters in `usage_events`, limits tunable by env with no redeploy). Hitting a cap returns a plain explanation and never breaks the site — the stored digest, every tab, the reports and the emails keep working, and the pipeline already falls back to rule-only flags. Scheduled runs are never blocked, so the Monday digest always goes out. Live meters are on `/status`.
 - **One batched Gemini call per run.** All releases in a single JSON-mode request, bodies truncated to 3,000 chars, 40 items max, flagged first. One call per run keeps cost at a few paise and latency inside the cron window.
 - **Fail-safe.** If Gemini errors or returns a bad shape (one retry), the digest is still saved and still mailed, using rule flags plus the first lines of each release note, under the banner *"AI summary unavailable: flags from rules only"*.
 - **Tickets are keyed by `release_id` (repo + tag).** Marking something Fixed survives every later run — the Fixed tab is the source of truth, not the digest payload.
@@ -61,6 +62,7 @@ bell confirms the Monday run already happened before she opened the tab.
 | `GEMINI_API_KEY` / `GEMINI_MODEL` | Gemini Flash (exam rule: Gemini only) |
 | `RESEND_API_KEY` / `EMAIL_FROM` / `DIGEST_TO` | digest, alert and assignment mail |
 | `ADMIN_PASSCODE` | unlocks runs, repo edits, assignment, reports |
+| `CAP_*` | spend guards — AI calls/day, assistant questions per visitor-hour and per day, runs/day, cooldown between runs |
 | `DEMO_UNLOCK` | `true` pre-fills the passcode on `/login` so a reviewer unlocks in one click; unset it for a normal passcode form |
 | `CRON_SECRET` | Bearer token Vercel Cron sends to `/api/cron/*` |
 | `APP_URL` | links inside emails |

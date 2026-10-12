@@ -1,4 +1,5 @@
 import { requireAdmin } from '@/lib/auth';
+import { checkBudget, recordUsage } from '@/lib/budget';
 import { sql } from '@/lib/db';
 import { classify } from '@/lib/gemini';
 import { CASES } from '@/lib/quality';
@@ -8,9 +9,12 @@ export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
 /** One Gemini call over the 13 fixtures; the result is stored and shown on /quality. */
-export async function POST() {
+export async function POST(req: Request) {
   const denied = await requireAdmin();
   if (denied) return denied;
+  const capped = await checkBudget('eval', req);
+  if (capped) return Response.json({ error: capped }, { status: 429 });
+  await recordUsage('eval', req);
 
   const input = CASES.map((c) => ({
     id: c.id, repo: c.repo, category: 'dependency', tag: c.tag,

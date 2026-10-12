@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { sql } from '@/lib/db';
+import { checkBudget, recordUsage } from '@/lib/budget';
 import { askAssistant, costInr, type ChatTurn } from '@/lib/gemini';
 import type { DigestPayload } from '@/lib/pipeline';
 
@@ -52,6 +53,10 @@ export async function POST(req: Request) {
   const parsed = Body.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) return Response.json({ error: 'Ask a question (2–500 characters).' }, { status: 400 });
 
+  // Public endpoint: cap it before spending anything.
+  const capped = await checkBudget('chat', req);
+  if (capped) return Response.json({ error: capped }, { status: 429 });
+
   let context: string | null;
   try {
     context = await buildContext();
@@ -60,6 +65,7 @@ export async function POST(req: Request) {
   }
   if (!context) return Response.json({ error: 'No digest yet — run one first and I will have something to read.' }, { status: 404 });
 
+  await recordUsage('chat', req);
   const r = await askAssistant(parsed.data.question, context, parsed.data.history as ChatTurn[]);
   if (!r.ok) return Response.json({ error: r.error ?? 'Gemini is unavailable right now.' }, { status: 502 });
 

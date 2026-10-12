@@ -1,6 +1,7 @@
 import { nextMondayRun } from '@/lib/schedule';
 import { sql } from '@/lib/db';
 import { runs, type RunRow } from '@/lib/queries';
+import { LIMITS, usageToday } from '@/lib/budget';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,6 +9,22 @@ const ENV_VARS = [
   'DATABASE_URL', 'GITHUB_TOKEN', 'GEMINI_API_KEY', 'GEMINI_MODEL',
   'RESEND_API_KEY', 'EMAIL_FROM', 'DIGEST_TO', 'ADMIN_PASSCODE', 'CRON_SECRET', 'APP_URL',
 ];
+
+function Meter({ label, used, cap }: { label: string; used: number; cap: number }) {
+  const pct = Math.min(100, Math.round((used / Math.max(cap, 1)) * 100));
+  const tone = pct >= 90 ? 'bg-high' : pct >= 60 ? 'bg-medium' : 'bg-accent';
+  return (
+    <div className="rounded-xl border border-line bg-ink0 p-3">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-xs text-muted">{label}</span>
+        <span className="text-sm font-semibold">{used}<span className="text-xs font-normal text-muted"> / {cap}</span></span>
+      </div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-line">
+        <div className={`h-full rounded-full ${tone}`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
@@ -31,6 +48,9 @@ export default async function Status() {
     dbError = e instanceof Error ? e.message : String(e);
   }
 
+  const used = await usageToday();
+  const n = (k: string) => used.find((u) => u.kind === k)?.n ?? 0;
+  const aiToday = used.reduce((t, u) => t + u.n, 0);
   const last = rows[0];
 
   return (
@@ -44,6 +64,24 @@ export default async function Status() {
         <Stat label="Active repos" value={String(repoCount)} />
         <Stat label="AI cost this month" value={`₹${monthCost.toFixed(4)}`} />
       </div>
+
+      <section className="card p-4">
+        <h2 className="text-sm font-semibold">AI budget guards (last 24h)</h2>
+        <p className="mt-1 text-xs text-muted">
+          This is a public demo, so the endpoints that cost money are capped. Reaching a cap never
+          breaks the site — the stored digest, every tab, the reports and the emails keep working,
+          and the pipeline already falls back to rule-only flags if Gemini is unavailable.
+        </p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          <Meter label="AI calls today" used={aiToday} cap={LIMITS.geminiCallsPerDay()} />
+          <Meter label="Assistant questions" used={n('chat')} cap={LIMITS.chatPerDay()} />
+          <Meter label="Manual runs" used={n('run')} cap={LIMITS.runPerDay()} />
+        </div>
+        <p className="mt-3 text-xs text-muted">
+          Also: {LIMITS.chatPerIpPerHour()} questions per visitor per hour, and {LIMITS.runCooldownSec()}s
+          between manual runs. Scheduled Monday and daily runs are never blocked.
+        </p>
+      </section>
 
       <section className="card overflow-x-auto">
         <h2 className="border-b border-line px-4 py-3 text-sm font-semibold">Runs</h2>
