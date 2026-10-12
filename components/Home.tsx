@@ -220,11 +220,19 @@ export default function Home({
                 <PriorityBar counts={queue} onPick={(p) => { setFilter(p); setTab('needs'); }} />
 
                 <h2 className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted">Key insights</h2>
-                <ul className="mt-2 space-y-2">
+                <ul className="mt-2 space-y-1">
                   {digest.briefing.slice(0, 5).map((b, i) => (
-                    <li key={i} className="flex gap-2 text-sm">
-                      <Chip label={priorityLabel(b.priority)} tone={b.priority} />
-                      <span className="min-w-0">{b.text}</span>
+                    <li key={i}>
+                      <button
+                        onClick={() => { setFilter(b.priority === 'LOW' ? null : b.priority); setTab(b.priority === 'LOW' ? 'all' : 'needs'); }}
+                        className="group flex w-full items-start gap-2.5 rounded-xl px-2 py-1.5 text-left text-sm
+                          transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-ink3">
+                        <span className="mt-[1px] shrink-0"><Chip label={priorityLabel(b.priority)} tone={b.priority} /></span>
+                        <span className="min-w-0 flex-1">{b.text}</span>
+                        <span className="mt-[2px] shrink-0 translate-x-[-6px] text-accent opacity-0
+                          transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
+                          group-hover:translate-x-0 group-hover:opacity-100">→</span>
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -232,13 +240,10 @@ export default function Home({
                 {!!topHigh.length && (
                   <div className="mt-4 border-t border-line pt-3">
                     <h2 className="text-xs font-semibold uppercase tracking-wider text-muted">Start here</h2>
-                    <div className="mt-2 flex flex-wrap gap-2">
+                    <div className="mt-2.5 flex flex-wrap gap-2">
                       {topHigh.map((t) => (
-                        <button key={t.ticket_id} onClick={() => { setFilter('HIGH'); setTab('needs'); }}
-                          className="card-hover flex items-center gap-2 rounded-xl border border-line bg-ink3 px-3 py-2 text-left text-xs">
-                          <span className="h-5 w-[3px] rounded-full bg-high" />
-                          <span><span className="font-medium">{t.repo}</span> <span className="text-muted">{t.tag}</span></span>
-                        </button>
+                        <FlowButton key={t.ticket_id} size="sm" text={t.repo} sub={t.tag}
+                          onClick={() => { setFilter('HIGH'); setTab('needs'); }} />
                       ))}
                     </div>
                   </div>
