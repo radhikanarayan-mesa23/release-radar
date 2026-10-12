@@ -19,11 +19,12 @@ function Arrow({ className = '' }: { className?: string }) {
 }
 
 export default function FlowButton({
-  text, sub, pendingText = 'Working…', pending = false, disabled = false,
+  text, sub, dot, pendingText = 'Working…', pending = false, disabled = false,
   onClick, type = 'button', full = false, size = 'md',
 }: {
-  text: string; sub?: string; pendingText?: string; pending?: boolean; disabled?: boolean;
-  onClick?: () => void; type?: 'button' | 'submit'; full?: boolean; size?: 'sm' | 'md';
+  text: string; sub?: string; dot?: string; pendingText?: string; pending?: boolean;
+  disabled?: boolean; onClick?: () => void; type?: 'button' | 'submit';
+  full?: boolean; size?: 'sm' | 'md';
 }) {
   const pad = size === 'sm' ? 'px-5 py-2 text-xs' : 'px-7 py-3 text-sm';
   const slide = size === 'sm' ? '-translate-x-2.5 group-hover:translate-x-2.5' : '-translate-x-3 group-hover:translate-x-3';
@@ -43,7 +44,7 @@ export default function FlowButton({
         ${full ? 'w-full' : ''}
         ${pending
           ? 'border-transparent text-ink0'
-          : 'border-[#4A4039] text-fg hover:border-transparent hover:text-ink0'}
+          : 'border-accent/35 bg-accent/[0.06] text-fg hover:border-transparent hover:text-ink0'}
         ${disabled && !pending ? 'opacity-40' : ''}`}
     >
       {/* left arrow / spinner */}
@@ -57,6 +58,11 @@ export default function FlowButton({
           ease-[cubic-bezier(0.34,1.56,0.64,1)] ${arrowIn}`} />
       )}
 
+      {dot && !pending && (
+        <span aria-hidden style={{ background: dot }}
+          className="relative z-[1] mr-1.5 h-1.5 w-1.5 shrink-0 rounded-full opacity-100
+            transition-opacity duration-500 group-hover:opacity-0" />
+      )}
       <span className={`relative z-[1] whitespace-nowrap transition-all duration-[800ms] ease-out
         ${pending ? 'translate-x-3' : slide}`}>
         {pending ? pendingText : text}
@@ -70,8 +76,9 @@ export default function FlowButton({
           ${pending ? 'h-[260px] w-[260px] opacity-100' : 'h-4 w-4 opacity-0 group-hover:h-[260px] group-hover:w-[260px] group-hover:opacity-100'}`} />
 
       {!pending && (
-        <Arrow className={`absolute z-[9] h-4 w-4 transition-all duration-[800ms]
-          ease-[cubic-bezier(0.34,1.56,0.64,1)] ${arrowOut} group-hover:right-[-25%]`} />
+        <Arrow className={`absolute z-[9] h-4 w-4 text-accent transition-all duration-[800ms]
+          ease-[cubic-bezier(0.34,1.56,0.64,1)] ${arrowOut}
+          group-hover:right-[-25%] group-hover:text-ink0`} />
       )}
     </button>
   );

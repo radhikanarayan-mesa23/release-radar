@@ -225,13 +225,15 @@ export default function Home({
                     <li key={i}>
                       <button
                         onClick={() => { setFilter(b.priority === 'LOW' ? null : b.priority); setTab(b.priority === 'LOW' ? 'all' : 'needs'); }}
-                        className="group flex w-full items-start gap-2.5 rounded-xl px-2 py-1.5 text-left text-sm
-                          transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-ink3">
+                        className="group flex w-full items-start gap-2.5 rounded-xl border border-transparent
+                          bg-ink0/40 px-2.5 py-2 text-left text-sm
+                          transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]
+                          hover:border-accent/30 hover:bg-ink3">
                         <span className="mt-[1px] shrink-0"><Chip label={priorityLabel(b.priority)} tone={b.priority} /></span>
                         <span className="min-w-0 flex-1">{b.text}</span>
-                        <span className="mt-[2px] shrink-0 translate-x-[-6px] text-accent opacity-0
+                        <span className="mt-[2px] shrink-0 text-accent opacity-40
                           transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
-                          group-hover:translate-x-0 group-hover:opacity-100">→</span>
+                          group-hover:translate-x-1 group-hover:opacity-100">→</span>
                       </button>
                     </li>
                   ))}
@@ -243,6 +245,7 @@ export default function Home({
                     <div className="mt-2.5 flex flex-wrap gap-2">
                       {topHigh.map((t) => (
                         <FlowButton key={t.ticket_id} size="sm" text={t.repo} sub={t.tag}
+                          dot={PRIORITY_HEX[t.priority]}
                           onClick={() => { setFilter('HIGH'); setTab('needs'); }} />
                       ))}
                     </div>
