@@ -34,6 +34,37 @@ export function parseVersion(tag: string): string | null {
   return semver.valid(stripped);
 }
 
+/**
+ * Package prefix of a monorepo tag: `@hono/otel@1.2.0` -> `@hono/otel`.
+ * A plain `v4.2.1` has no prefix.
+ */
+export function tagPrefix(tag: string): string {
+  const at = tag.lastIndexOf('@');
+  return at > 0 ? tag.slice(0, at) : '';
+}
+
+/**
+ * The release this one actually succeeds: the HIGHEST version BELOW `tag`,
+ * among tags of the same package.
+ *
+ * Not simply "the release published before this one" — repos maintain several
+ * lines at once, so by date a v4 backport follows a v5 release (semver.diff
+ * would call that a major bump and flag a fake BREAKING), and a monorepo would
+ * compare two unrelated packages.
+ */
+export function previousTag(tag: string, tags: string[]): string | null {
+  const cur = parseVersion(tag);
+  const prefix = tagPrefix(tag);
+  const sameFamily = tags.filter((t) => t !== tag && tagPrefix(t) === prefix);
+  if (!cur) return sameFamily[0] ?? null; // non-semver scheme: fall back to publish order
+
+  const older = sameFamily
+    .map((t) => ({ t, v: parseVersion(t) }))
+    .filter((x): x is { t: string; v: string } => !!x.v && semver.lt(x.v, cur))
+    .sort((a, b) => semver.rcompare(a.v, b.v));
+  return older[0]?.t ?? null;
+}
+
 export function bumpOf(tag: string, prevTag?: string | null): Bump {
   const cur = parseVersion(tag);
   const prev = prevTag ? parseVersion(prevTag) : null;
@@ -116,6 +147,7 @@ export function applyRules(input: RuleInput): RuleResult {
     if (prerelease) reasons.push('Pre-release, no security or breaking signal');
     else if (bump === 'MINOR') reasons.push('Minor release, new functionality to review');
     else if (bump === 'PATCH') reasons.push('Patch release, no security or breaking signal');
+    else if (parseVersion(input.tag)) reasons.push('No earlier release of this package to compare against');
     else reasons.push('Version scheme not semver, no security or breaking signal');
   }
 

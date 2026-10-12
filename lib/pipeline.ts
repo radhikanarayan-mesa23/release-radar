@@ -4,8 +4,8 @@ import {
   getRepo, listReleases, listTags, getCommitDate, listAdvisories, pool, avatarUrl,
   GhError, type GhRelease,
 } from './github';
-import { applyRules, priorityFromRules, type Bump, type Category, type Priority } from './rules';
-import { classify, costInr, selectForAi, type GeminiInput, type GeminiOut } from './gemini';
+import { applyRules, previousTag, priorityFromRules, type Bump, type Category, type Priority } from './rules';
+import { classify, costInr, selectForAi, type GeminiInput } from './gemini';
 import { briefingBlock, card, esc, sendTo, shell, type MailItem } from './email';
 
 export type RunKind = 'weekly' | 'daily-security' | 'manual';
@@ -73,7 +73,10 @@ async function collect(repo: RepoRow, since: Date): Promise<Collected> {
       .sort((a, b) => (b.published_at ?? '').localeCompare(a.published_at ?? ''));
 
     const inWindow = all.filter((r) => r.published_at && new Date(r.published_at) >= since);
-    const prevOf = (r: GhRelease) => all[all.indexOf(r) + 1]?.tag_name ?? null;
+    const tagNames = all.map((r) => r.tag_name);
+    // Compare against the previous release of the SAME package/line, not merely
+    // the one published before it — see previousTag().
+    const prevOf = (r: GhRelease) => previousTag(r.tag_name, tagNames);
 
     for (const r of inWindow) {
       out.raw.push({

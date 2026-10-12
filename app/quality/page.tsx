@@ -6,6 +6,16 @@ import { grade, type EvalItem } from '@/lib/quality';
 
 export const dynamic = 'force-dynamic';
 
+function Stat({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
+  return (
+    <div className="card p-4">
+      <div className="text-xs text-muted">{label}</div>
+      <div className="mt-1 text-2xl font-semibold">{value}</div>
+      {hint && <div className="text-xs text-muted">{hint}</div>}
+    </div>
+  );
+}
+
 export default async function Quality() {
   const admin = await isAdmin();
   let stored: { results: EvalItem[]; created_at: string } | null = null;
@@ -15,14 +25,6 @@ export default async function Quality() {
   } catch { /* DB not reachable: rules-only view still works */ }
 
   const { rows, score } = grade(stored?.results ?? []);
-
-  const Stat = ({ label, value, hint }: { label: string; value: string | number; hint?: string }) => (
-    <div className="card p-4">
-      <div className="text-xs text-muted">{label}</div>
-      <div className="mt-1 text-2xl font-semibold">{value}</div>
-      {hint && <div className="text-xs text-muted">{hint}</div>}
-    </div>
-  );
 
   return (
     <div className="space-y-4">

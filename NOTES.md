@@ -9,6 +9,17 @@
 - P5 `lib/email.ts` (digest / alert / assignment with DIGEST_TO fallback), `/api/report` html+csv, `vercel.json` crons
 - `next build` green, 16 routes
 
+## Verified without keys (2026-10-12)
+- eslint: 0 errors; `next build` green; all 6 pages return 200; `POST /api/run` without passcode → 401
+- `npm run smoke` — live unauthenticated GitHub check over 5 real repos + monorepo tags. Found and fixed:
+  - **prev_tag bug**: "previous release by date" made a v4 backport compare against v5 (fake MAJOR →
+    fake BREAKING → fake HIGH), and compared unrelated packages in a monorepo. Now `previousTag()`
+    picks the highest version BELOW the current one within the same package prefix.
+  - scripts needed `.mts` (top-level await fails under tsx's cjs transform) — `dry-run` would have
+    failed on first use.
+- SECURITY regex checked against real notes: hits on fastify/axios are true positives (GHSA link,
+  "🔒 Security Fixes" section). Left exactly as the brief specifies.
+
 ## Next
 - Run `db/schema.sql` then `db/seed.sql` in the Neon SQL editor
 - Fill `.env`, then `npm run dry-run -- 30` (first live run, creates tickets)
@@ -20,6 +31,7 @@
   Gemini can drop it to LOW with `action = "no action"`.
 - `lib/pipeline.ts`: NOT_SURE only when nothing is flagged at all — a flagged-but-unsure item keeps its
   flag priority (the safe direction).
-- `bumpOf` returns UNKNOWN when there is no previous release to compare against.
+- `bumpOf` returns UNKNOWN when there is no previous release of the same package in the fetched
+  15 — shown as "No earlier release of this package to compare against", priority LOW.
 - Fixtures carry no category, so `scripts/test-rules.ts` and `/quality` treat them all as `dependency`.
 - `cacheComponents` turned off in `next.config.ts`: every page reads live Neon state.

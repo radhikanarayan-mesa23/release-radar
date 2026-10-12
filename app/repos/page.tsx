@@ -7,7 +7,8 @@ export const dynamic = 'force-dynamic';
 
 export default async function Repos() {
   const admin = await isAdmin();
-  let repos: RepoRow[] = [], team: Member[] = [], errors: Record<string, string> = {}, dbError: string | null = null;
+  const errors: Record<string, string> = {};
+  let repos: RepoRow[] = [], team: Member[] = [], dbError: string | null = null;
   try {
     repos = (await sql`select id, owner, name, category, why, active from repos
                        order by category, lower(owner), lower(name)`) as RepoRow[];

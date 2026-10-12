@@ -7,9 +7,9 @@ export const dynamic = 'force-dynamic';
 
 export default async function Page() {
   const admin = await isAdmin();
+  const events: Record<number, { at: string; by_name: string | null; action: string; detail: string | null }[]> = {};
   let digest = null, needs: TicketRow[] = [], fixed: TicketRow[] = [],
     members: { id: number; name: string }[] = [], past: Awaited<ReturnType<typeof pastDigests>> = [],
-    events: Record<number, { at: string; by_name: string | null; action: string; detail: string | null }[]> = {},
     error: string | null = null;
 
   try {

@@ -9,6 +9,15 @@ const ENV_VARS = [
   'RESEND_API_KEY', 'EMAIL_FROM', 'DIGEST_TO', 'ADMIN_PASSCODE', 'CRON_SECRET', 'APP_URL',
 ];
 
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="card p-4">
+      <div className="text-xs text-muted">{label}</div>
+      <div className="mt-1 font-semibold">{value}</div>
+    </div>
+  );
+}
+
 export default async function Status() {
   let rows: RunRow[] = [], repoCount = 0, monthCost = 0, repoErrors: { repo: string; error: string }[] = [], dbError: string | null = null;
   try {
@@ -23,9 +32,6 @@ export default async function Status() {
   }
 
   const last = rows[0];
-  const Stat = ({ label, value }: { label: string; value: string }) => (
-    <div className="card p-4"><div className="text-xs text-muted">{label}</div><div className="mt-1 font-semibold">{value}</div></div>
-  );
 
   return (
     <div className="space-y-4">
