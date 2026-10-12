@@ -4,8 +4,21 @@ Keerthi watches 20+ public GitHub repos — payment gateways, auth libraries, ba
 GitHub Watch is a firehose, so last quarter a security patch sat unread for **11 days**.
 Release Radar reads only *releases*, puts security fixes and breaking changes at the top, and mails her a 5-minute digest every Monday 08:00 IST.
 
-- **Live URL:** _set after deploy_ → `https://<project>.vercel.app`
+- **Live URL:** **https://release-radar-radhi2.vercel.app**
+- **Repo:** https://github.com/radhikanarayan-mesa23/release-radar
 - **Components map:** [`components_map.png`](./components_map.png)
+
+![Components map](./components_map.png)
+
+Public read: the dashboard, every tab, `/quality` and `/status` are open to anyone.
+Admin actions (run, add repos, assign, export) need the passcode at `/login`.
+
+## What it looks like
+
+The dashboard answers one question — *what do I do today?* Metric tiles segment the
+live work queue and each one filters the list; "Your focus today" carries the AI
+briefing grouped HIGH → MEDIUM → LOW; "Start here" links the top HIGH items; and the
+bell confirms the Monday run already happened before she opened the tab.
 
 ## Pages
 

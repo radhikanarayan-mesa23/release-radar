@@ -22,6 +22,13 @@
 - Email templates rendered to `email-preview/` (gitignored) — digest, assignment, alert all good.
 - Static cross-check: every table and column used in SQL exists in `db/schema.sql`.
 
+## Shipped
+- Live: https://release-radar-radhi2.vercel.app (public read, admin passcode for writes)
+- Repo: github.com/radhikanarayan-mesa23/release-radar
+- Crons registered: `30 2 * * 1` weekly + `0 3 * * *` daily = Mon 08:00 / daily 08:30 IST
+- 30-day run stored: 66 releases, 27 HIGH, 38 open tickets, 24 repos, ₹2.47
+- UI rebuilt dark (status palette validated vs the dark surface; all AA text contrast)
+
 ## Next
 - Run `db/schema.sql` then `db/seed.sql` in the Neon SQL editor
 - Fill `.env`, then `npm run dry-run -- 30` (first live run, creates tickets)
