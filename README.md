@@ -12,6 +12,12 @@ Release Radar reads only *releases*, puts security fixes and breaking changes at
 
 ![Components map](./components_map.png)
 
+The map is regenerated from [`docs/components-map.html`](./docs/components-map.html), so it stays
+in step with the build rather than drifting from it. The original v2 map shipped with the brief is
+kept as `components_map_v2_original.png` for comparison — items marked **NEW** on the current map
+are what was added after it: codebase-impact matching, the editable rubric, Telegram alerts, the
+grounded assistant, spend guards and the landing page.
+
 Public read: the dashboard, every tab, `/quality` and `/status` are open to anyone.
 Admin actions (run, add repos, assign, export) need the passcode at `/login`.
 

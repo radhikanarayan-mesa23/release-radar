@@ -1,0 +1,122 @@
+<!doctype html><html lang="en"><meta charset="utf-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#121110;color:#E7E2DC;font:14px/1.45 Inter,system-ui,sans-serif;padding:40px 44px;width:2240px}
+  h1{font-size:34px;font-weight:700;letter-spacing:-.6px}
+  .sub{color:#9A918A;font-size:15px;margin-top:8px}
+  .sub b{color:#F97316;font-weight:600}
+  table{width:100%;border-collapse:separate;border-spacing:0;margin-top:26px}
+  th{background:#1B1715;color:#E7E2DC;font-size:14px;font-weight:600;padding:13px 16px;text-align:center;border:1px solid #332D28}
+  th:first-child{text-align:left}
+  td{border:1px solid #2A2522;vertical-align:top;padding:11px;height:96px}
+  .actor{background:#1B1715;padding:14px 16px;width:170px}
+  .actor b{display:block;font-size:15px;font-weight:600}
+  .actor span{color:#9A918A;font-size:12px}
+  .n{position:relative;border-radius:12px;padding:11px 13px 12px;border:1.5px solid;background:#1E1A18}
+  .n h4{font-size:13.5px;font-weight:600;margin-bottom:5px}
+  .n p{font-size:12px;color:#B5ADA6;line-height:1.5}
+  .tag{position:absolute;top:-11px;left:11px;width:22px;height:22px;border-radius:50%;background:#121110;
+       border:1.5px solid;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .vi{border-color:#8B7BF0}.vi .tag{border-color:#8B7BF0;color:#8B7BF0}
+  .bl{border-color:#4D8DF0}.bl .tag{border-color:#4D8DF0;color:#4D8DF0}
+  .gr{border-color:#3FB984}.gr .tag{border-color:#3FB984;color:#3FB984}
+  .ye{border-color:#E0B341}.ye .tag{border-color:#E0B341;color:#E0B341}
+  .pk{border-color:#E濃}.pk{border-color:#E36FB0}.pk .tag{border-color:#E36FB0;color:#E36FB0}
+  .or{border-color:#F97316}.or .tag{border-color:#F97316;color:#F97316}
+  .rd{border-color:#FF6B5A}.rd .tag{border-color:#FF6B5A;color:#FF6B5A}
+  .new{display:inline-block;margin-left:6px;font-size:9.5px;font-weight:700;letter-spacing:.4px;
+       color:#121110;background:linear-gradient(135deg,#F97316,#FBBF24);border-radius:5px;padding:1.5px 5px;vertical-align:1px}
+  .foot{margin-top:24px;display:flex;gap:40px;font-size:12.5px;color:#9A918A;flex-wrap:wrap}
+  .foot b{color:#E7E2DC;font-weight:600}
+  code{background:#2A2522;border-radius:4px;padding:1px 5px;font-size:11.5px;color:#FBBF24}
+</style>
+<h1>Release Radar — Components Map</h1>
+<p class="sub">Public GitHub repos → prioritised briefing, tickets and alerts for Keerthi · Monday 08:00 IST ·
+  <b>Gemini Flash</b> · Neon · Vercel · Resend · Telegram</p>
+
+<table>
+<tr><th>Actor</th><th>Trigger</th><th>Input</th><th>Context</th><th>Processing</th><th>AI</th><th>Output</th></tr>
+
+<tr>
+ <td class="actor"><b>Keerthi</b><span>Owner · admin</span></td>
+ <td><div class="n vi"><span class="tag">0</span><h4>Manages the setup</h4><p>/repos: paste many links · dependency or evaluating · team · <b>rubric terms</b><span class="new">NEW</span> · <b>package.json</b><span class="new">NEW</span></p></div></td>
+ <td></td><td></td><td></td><td></td>
+ <td><div class="n or"><span class="tag">11</span><h4>Opens the dashboard</h4><p>Landing → greeting → metric tiles → focus + key insights → tabs: Needs action · Previous issues · All · Evaluating · Quiet · <b>Rules</b></p></div></td>
+</tr>
+
+<tr>
+ <td class="actor"><b>Team</b><span>Assignee</span></td>
+ <td></td><td></td><td></td><td></td><td></td>
+ <td><div class="n or"><span class="tag">12</span><h4>Gets the assignment</h4><p>Email: repo, version, why, note. Falls back to DIGEST_TO if the domain is unverified — logged in ticket history, never blocks the action</p></div></td>
+</tr>
+
+<tr>
+ <td class="actor"><b>Scheduler</b><span>Vercel Cron</span></td>
+ <td><div class="n vi"><span class="tag">1</span><h4>Triggers</h4><p><code>30 2 * * 1</code> Mon 08:00 IST<br><code>0 3 * * *</code> daily 08:30 security sweep<br>Run now · 1 / 7 / 14 / 30 days</p></div></td>
+ <td></td><td></td><td></td><td></td><td></td>
+</tr>
+
+<tr>
+ <td class="actor"><b>Store</b><span>Neon Postgres</span></td>
+ <td></td>
+ <td><div class="n bl"><span class="tag">2</span><h4>Config</h4><p>active repos + category · team · <b>rule_config</b> rubric<span class="new">NEW</span> · <b>manifest_deps</b> ranges<span class="new">NEW</span></p></div></td>
+ <td><div class="n gr"><span class="tag">5</span><h4>Memory</h4><p>previous tags · tickets (status sticks by release) · star snapshots · past digests · <b>usage_events</b><span class="new">NEW</span></p></div></td>
+ <td></td><td></td>
+ <td><div class="n or"><span class="tag">10</span><h4>Saved</h4><p>releases · tickets · ticket_events · digests · runs + ₹ cost</p></div></td>
+</tr>
+
+<tr>
+ <td class="actor"><b>Source</b><span>GitHub REST API</span></td>
+ <td></td>
+ <td><div class="n bl"><span class="tag">3</span><h4>Live public data</h4><p>releases (per_page 15) · tags fallback · security advisories · stars. Concurrency 5. No scraping, no OAuth</p></div></td>
+ <td></td><td></td><td></td><td></td>
+</tr>
+
+<tr>
+ <td class="actor"><b>Guards</b><span>lib/budget.ts</span></td>
+ <td><div class="n rd"><span class="tag">4</span><h4>Spend caps<span class="new">NEW</span></h4><p>200 AI calls/day · 15 questions per visitor-hour · 180s between runs. Scheduled runs never blocked. Fails open</p></div></td>
+ <td></td><td></td><td></td><td></td><td></td>
+</tr>
+
+<tr>
+ <td class="actor"><b>Engine</b><span>Vercel functions</span></td>
+ <td></td><td></td><td></td>
+ <td><div class="n ye"><span class="tag">6</span><h4>Rules → priority</h4><p>drop drafts · semver bump vs <b>previous version of the same package</b> · SECURITY / BREAKING regex from the rubric, ignoring example-only lines · HIGH / MED / LOW / NOT SURE · auto-tickets</p></div></td>
+ <td></td><td></td>
+</tr>
+
+<tr>
+ <td class="actor"><b>Impact</b><span>lib/manifest.ts</span></td>
+ <td></td><td></td><td></td>
+ <td><div class="n ye"><span class="tag">7</span><h4>Does it affect her?<span class="new">NEW</span></h4><p>Matches the repo to the package it ships (stripe-node → stripe, @hono/otel) and compares the release to her range → affects you / already covered / not installed</p></div></td>
+ <td></td><td></td>
+</tr>
+
+<tr>
+ <td class="actor"><b>AI model</b><span>Gemini Flash</span></td>
+ <td></td><td></td><td></td><td></td>
+ <td><div class="n pk"><span class="tag">8</span><h4>One batched call per run</h4><p>summaries · is_security / is_breaking · why · confidence · 3–5 line briefing. Bodies capped 3,000 chars, 40 items, flagged first. zod-validated, one retry</p></div></td>
+ <td></td>
+</tr>
+
+<tr>
+ <td class="actor"><b>Assistant</b><span>Repository Buddy</span></td>
+ <td></td><td></td><td></td><td></td>
+ <td><div class="n pk"><span class="tag">9</span><h4>Grounded chat<span class="new">NEW</span></h4><p>Answers only from the stored digest + open tickets. Refuses anything outside it rather than inventing a CVE. Separate call path, so the one-call-per-run rule is untouched</p></div></td>
+ <td></td>
+</tr>
+
+<tr>
+ <td class="actor"><b>Delivery</b><span>Resend · Telegram</span></td>
+ <td></td><td></td><td></td><td></td><td></td>
+ <td><div class="n or"><span class="tag">13</span><h4>Reaches her</h4><p>Digest email after every run · daily alert only for a <b>genuinely new</b> HIGH security item · <b>Telegram push</b><span class="new">NEW</span> · assignment mail · CSV / HTML report 1 / 7 / 30 days</p></div></td>
+</tr>
+</table>
+
+<div class="foot">
+  <span><b>Rule:</b> SECURITY = rubric regex or advisory <b>OR</b> Gemini. AI may add a flag, never remove one.</span>
+  <span><b>Fail-safe:</b> Gemini down → digest still sends on rule flags alone (12/13 without AI, 13/13 with).</span>
+  <span><b>Access:</b> public read · passcode for writes.</span>
+  <span><b>New since v2:</b> codebase impact · editable rubric · Telegram · grounded assistant · spend guards · landing page.</span>
+</div>
