@@ -4,6 +4,9 @@ import { greetingIST, nextMondayRun } from '@/lib/schedule';
 import { sql } from '@/lib/db';
 import { latestDigest, manifestDeps, pastDigests, team, ticketEvents, tickets, type TicketRow } from '@/lib/queries';
 import { matchRelease, type Match } from '@/lib/manifest';
+import { ruleConfig } from '@/app/api/rules/route';
+import { DEFAULT_BREAKING_TERMS, DEFAULT_IGNORE_TERMS, DEFAULT_SECURITY_TERMS } from '@/lib/rules';
+import type { RulesPayload } from '@/components/RulesTab';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +20,18 @@ export default async function Page() {
   let repoCount = 0, evaluatingCount = 0;
   let matches: Record<number, Match> = {};
   let manifestCount = 0;
+  const cfg = await ruleConfig();
+  const rules: RulesPayload = {
+    security_terms: cfg.security_terms ?? DEFAULT_SECURITY_TERMS,
+    breaking_terms: cfg.breaking_terms ?? DEFAULT_BREAKING_TERMS,
+    ignore_terms: cfg.ignore_terms ?? DEFAULT_IGNORE_TERMS,
+    customised: { security: !!cfg.security_terms, breaking: !!cfg.breaking_terms, ignore: !!cfg.ignore_terms },
+    defaults: {
+      security_terms: DEFAULT_SECURITY_TERMS,
+      breaking_terms: DEFAULT_BREAKING_TERMS,
+      ignore_terms: DEFAULT_IGNORE_TERMS,
+    },
+  };
   try {
     [digest, needs, fixed, members, past] = await Promise.all([
       latestDigest(), tickets(['open', 'in_progress']), tickets(['fixed', 'dismissed']),
@@ -59,6 +74,6 @@ export default async function Page() {
   return (
     <Home digest={digest} needs={needs} fixed={fixed} team={members} past={past} admin={admin}
       events={events} nextRun={nextMondayRun()} repoCount={repoCount} evaluatingCount={evaluatingCount}
-      greeting={greetingIST()} matches={matches} manifestCount={manifestCount} />
+      greeting={greetingIST()} matches={matches} manifestCount={manifestCount} rules={rules} />
   );
 }

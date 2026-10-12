@@ -5,6 +5,7 @@ import {
   GhError, type GhRelease,
 } from './github';
 import { applyRules, previousTag, priorityFromRules, type Bump, type Category, type Priority } from './rules';
+import { ruleConfig } from '@/app/api/rules/route';
 import { classify, costInr, selectForAi, type GeminiInput } from './gemini';
 import { briefingBlock, card, esc, sendTo, shell, type MailItem } from './email';
 import { alertNewSecurity, telegramConfigured } from './telegram';
@@ -165,12 +166,16 @@ export async function runDigest(opts: { days: number; kind: RunKind; email?: boo
 
   const collected = await pool(repos, 5, (r) => collect(r, since));
 
+  // The rubric: whatever Keerthi has saved on the Rules tab, or the defaults.
+  const cfg = await ruleConfig();
+
   // --- rules ---
   interface Staged { c: Collected; r: Collected['raw'][number]; bump: Bump; rule_flags: string[]; why: string; prerelease: boolean; key: string }
   const staged: Staged[] = [];
   for (const c of collected) {
     for (const r of c.raw) {
-      const res = applyRules({ tag: r.tag, prev_tag: r.prev_tag, title: r.title, body: r.body, prerelease: r.prerelease });
+      const res = applyRules(
+        { tag: r.tag, prev_tag: r.prev_tag, title: r.title, body: r.body, prerelease: r.prerelease }, cfg);
       const rule_flags = Array.from(new Set([...res.flags, ...r.extra_flags]));
       staged.push({
         c, r, bump: res.bump, rule_flags, prerelease: res.prerelease,

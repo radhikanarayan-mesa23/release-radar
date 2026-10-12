@@ -159,7 +159,7 @@ export default function ReleaseCard({
               {item.url && (
                 <a href={item.url} target="_blank" rel="noreferrer"
                   className="rounded-lg border border-[#4A4039] px-2 py-1.5 text-xs text-muted hover:border-accent hover:text-accent">
-                  Release notes ↗
+                  Go to repo ↗
                 </a>
               )}
             </div>
@@ -182,7 +182,7 @@ export default function ReleaseCard({
               {item.url && (
                 <a href={item.url} target="_blank" rel="noreferrer"
                   className="ml-auto rounded-lg border border-[#4A4039] px-2 py-1.5 text-xs text-muted hover:border-accent hover:text-accent">
-                  Release notes ↗
+                  Go to repo ↗
                 </a>
               )}
             </div>
@@ -196,7 +196,7 @@ export default function ReleaseCard({
           )}
           {!t && item.url && (
             <a href={item.url} target="_blank" rel="noreferrer"
-              className="mt-3 inline-block text-xs text-muted hover:text-accent">Release notes ↗</a>
+              className="mt-3 inline-block text-xs text-muted hover:text-accent">Go to repo ↗</a>
           )}
         </div>
       </div>

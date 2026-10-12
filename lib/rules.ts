@@ -7,20 +7,54 @@ export type Flag = 'SECURITY' | 'BREAKING';
 export type Priority = 'HIGH' | 'MEDIUM' | 'LOW' | 'NOT_SURE';
 export type Category = 'dependency' | 'evaluating';
 
-/** Keywords that mean "a consumer of this library may be exposed". */
-const SECURITY_RE =
-  /CVE-\d{4}-\d+|GHSA-|security|vulnerab|\bXSS\b|\bCSRF\b|\bSSRF\b|\bRCE\b|injection|auth(entication)? bypass|privilege escalation|denial of service|\bDoS\b|sanitiz|leak/i;
+/**
+ * The rubric: the terms that decide a colour. These are the defaults, and they
+ * are what `scripts/test-rules.ts` grades against. A deployment can override any
+ * of the three lists from the dashboard; passing no config uses exactly these,
+ * so the fixtures keep their meaning.
+ */
+export const DEFAULT_SECURITY_TERMS = [
+  'CVE-\\d{4}-\\d+', 'GHSA-', 'security', 'vulnerab', '\\bXSS\\b', '\\bCSRF\\b', '\\bSSRF\\b',
+  '\\bRCE\\b', 'injection', 'auth(entication)? bypass', 'privilege escalation',
+  'denial of service', '\\bDoS\\b', 'sanitiz', 'leak',
+];
+
+export const DEFAULT_IGNORE_TERMS = [
+  'examples?/', '\\bexamples?\\b', '\\bdocs?\\b', 'documentation', '\\btests?\\b', '\\bspecs?\\b',
+  'playground', 'devdependenc', 'dev-dependenc', 'chore\\(deps-dev\\)', 'chore\\(examples?\\)',
+];
+
+export const DEFAULT_BREAKING_TERMS = [
+  'BREAKING', 'breaking change', 'removed support', 'no longer supported',
+  'migration (guide|required)', 'drop(ped)? support',
+];
+
+export interface RuleConfig {
+  security_terms?: string[] | null;
+  breaking_terms?: string[] | null;
+  ignore_terms?: string[] | null;
+}
+
+/** Build a case-insensitive alternation. Invalid user input falls back to defaults. */
+function compile(terms: string[] | null | undefined, fallback: string[]): RegExp {
+  const list = terms?.length ? terms : fallback;
+  try {
+    return new RegExp(list.join('|'), 'i');
+  } catch {
+    return new RegExp(fallback.join('|'), 'i');
+  }
+}
+
+const SECURITY_RE = compile(null, DEFAULT_SECURITY_TERMS);
 
 /**
  * Hard rule 3: a security fix that only touches example code, docs, tests,
  * playgrounds or devDependencies is NOT a risk for consumers of the package.
  * Lines matching this are dropped before the SECURITY regex runs.
  */
-const IGNORE_LINE_RE =
-  /examples?\/|\bexamples?\b|\bdocs?\b|documentation|\btests?\b|\bspecs?\b|playground|devdependenc|dev-dependenc|chore\(deps-dev\)|chore\(examples?\)/i;
+const IGNORE_LINE_RE = compile(null, DEFAULT_IGNORE_TERMS);
 
-const BREAKING_RE =
-  /BREAKING|breaking change|removed support|no longer supported|migration (guide|required)|drop(ped)? support/i;
+const BREAKING_RE = compile(null, DEFAULT_BREAKING_TERMS);
 
 /**
  * Tag -> semver string. Handles monorepo tags (`@hono/bun@1.0.1`) by taking the
@@ -83,24 +117,27 @@ export function isPrerelease(tag: string, flagged?: boolean): boolean {
 }
 
 /** Lines that survive the example/docs/test filter. */
-export function consumerLines(text: string): string[] {
+export function consumerLines(text: string, cfg?: RuleConfig): string[] {
+  const ignore = cfg ? compile(cfg.ignore_terms, DEFAULT_IGNORE_TERMS) : IGNORE_LINE_RE;
   return text
     .split(/\r?\n/)
     .map((l) => l.trim())
-    .filter((l) => l.length > 0 && !IGNORE_LINE_RE.test(l));
+    .filter((l) => l.length > 0 && !ignore.test(l));
 }
 
-export function matchSecurity(title: string, body: string): string | null {
-  for (const line of consumerLines([title, body].filter(Boolean).join('\n'))) {
-    const m = line.match(SECURITY_RE);
+export function matchSecurity(title: string, body: string, cfg?: RuleConfig): string | null {
+  const re = cfg ? compile(cfg.security_terms, DEFAULT_SECURITY_TERMS) : SECURITY_RE;
+  for (const line of consumerLines([title, body].filter(Boolean).join('\n'), cfg)) {
+    const m = line.match(re);
     if (m) return m[0];
   }
   return null;
 }
 
-export function matchBreakingText(title: string, body: string): string | null {
+export function matchBreakingText(title: string, body: string, cfg?: RuleConfig): string | null {
   // Not line-filtered: "Migration guide in docs" is still a breaking change.
-  const m = [title, body].filter(Boolean).join('\n').match(BREAKING_RE);
+  const re = cfg ? compile(cfg.breaking_terms, DEFAULT_BREAKING_TERMS) : BREAKING_RE;
+  const m = [title, body].filter(Boolean).join('\n').match(re);
   return m ? m[0] : null;
 }
 
@@ -119,7 +156,7 @@ export interface RuleResult {
   why: string;
 }
 
-export function applyRules(input: RuleInput): RuleResult {
+export function applyRules(input: RuleInput, cfg?: RuleConfig): RuleResult {
   const title = input.title ?? '';
   const body = (input.body ?? '').slice(0, 20000);
   const bump = bumpOf(input.tag, input.prev_tag);
@@ -128,13 +165,13 @@ export function applyRules(input: RuleInput): RuleResult {
   const flags: Flag[] = [];
   const reasons: string[] = [];
 
-  const sec = matchSecurity(title, body);
+  const sec = matchSecurity(title, body, cfg);
   if (sec) {
     flags.push('SECURITY');
     reasons.push(`Matched "${sec}" in release notes`);
   }
 
-  const brkText = matchBreakingText(title, body);
+  const brkText = matchBreakingText(title, body, cfg);
   if (bump === 'MAJOR') {
     flags.push('BREAKING');
     reasons.push(`Major version bump ${input.prev_tag} → ${input.tag}`);

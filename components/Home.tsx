@@ -8,8 +8,9 @@ import Assistant from './Assistant';
 import type { DigestPayload } from '@/lib/pipeline';
 import type { TicketRow } from '@/lib/queries';
 import type { Match } from '@/lib/manifest';
+import RulesTab, { type RulesPayload } from './RulesTab';
 
-type Tab = 'needs' | 'fixed' | 'all' | 'evaluating' | 'quiet';
+type Tab = 'needs' | 'fixed' | 'all' | 'evaluating' | 'quiet' | 'rules';
 type Sort = 'newest' | 'oldest' | 'high' | 'low';
 
 const SORTS: [Sort, string][] = [
@@ -47,7 +48,7 @@ export interface PastRow {
 
 export default function Home({
   digest, needs, fixed, team, past, admin, events, nextRun, repoCount, evaluatingCount, greeting,
-  matches, manifestCount,
+  matches, manifestCount, rules,
 }: {
   digest: DigestPayload | null; needs: TicketRow[]; fixed: TicketRow[]; team: TeamOption[];
   past: PastRow[]; admin: boolean;
@@ -56,6 +57,7 @@ export default function Home({
   greeting: { hello: string; when: string };
   matches: Record<number, Match>;
   manifestCount: number;
+  rules: RulesPayload;
 }) {
   const [tab, setTab] = useState<Tab>('needs');
   const [filter, setFilter] = useState<string | null>(null);
@@ -144,6 +146,7 @@ export default function Home({
     ['all', 'All releases', counts.total],
     ['evaluating', 'Evaluating', digest?.evaluating.length ?? 0],
     ['quiet', 'Quiet', counts.quiet],
+    ['rules', 'Rules', rules.security_terms.length + rules.breaking_terms.length + rules.ignore_terms.length],
   ];
 
   return (
@@ -362,6 +365,8 @@ export default function Home({
                   ))}
                 </ul>
               ) : <Empty>Every tracked repo shipped something.</Empty>)}
+
+              {tab === 'rules' && <RulesTab initial={rules} admin={admin} />}
 
               {tab === 'all' && !!counts.prerelease_hidden && (
                 <p className="px-2 text-xs text-muted">{counts.prerelease_hidden} pre-releases hidden (none flagged).</p>
