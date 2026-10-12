@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test:rules": "tsx scripts/test-rules.ts",
     "dry-run": "tsx --env-file-if-exists=.env scripts/dry-run.mts",
-    "smoke": "tsx --env-file-if-exists=.env scripts/smoke-github.mts"
+    "smoke": "tsx --env-file-if-exists=.env scripts/smoke-github.mts",
+    "eval:local": "tsx --env-file-if-exists=.env scripts/eval-local.mts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",

@@ -30,15 +30,19 @@ export function grade(aiItems: EvalItem[] = []): { rows: QualityRow[]; score: Re
     const finalFlags = Array.from(new Set([...r.flags, ...aiFlags])); // AI adds, never removes
     const finalPriority = priorityFromRules({ flags: finalFlags, bump: r.bump, prerelease: r.prerelease, category: 'dependency' });
 
-    const eq = (a: string[], b: string[]) => [...a].sort().join() === [...b].sort().join();
+    // Rule 2 lets the model ADD a flag, so an extra flag is not a miss: a case
+    // passes when the priority is right and no EXPECTED flag was lost. An extra
+    // flag that wrongly escalates still fails, because the priority then differs
+    // (and `falseHigh` counts it separately).
+    const keeps = (got: string[], want: string[]) => want.every((f) => got.includes(f));
     return {
       id: c.id, repo: c.repo, tag: c.tag,
       expected: { flags: c.expect.flags, priority: c.expect.priority },
       rules: { flags: r.flags, priority: rulesPriority, why: r.why },
       ai: g ? { flags: aiFlags, why: g.why, confidence: g.confidence } : null,
       final: { flags: finalFlags, priority: finalPriority },
-      rulesOk: eq(r.flags, c.expect.flags) && rulesPriority === c.expect.priority,
-      finalOk: eq(finalFlags, c.expect.flags) && finalPriority === c.expect.priority,
+      rulesOk: keeps(r.flags, c.expect.flags) && rulesPriority === c.expect.priority,
+      finalOk: keeps(finalFlags, c.expect.flags) && finalPriority === c.expect.priority,
     } satisfies QualityRow;
   });
   return { rows, score: tally(rows) };

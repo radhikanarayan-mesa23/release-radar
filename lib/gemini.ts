@@ -120,7 +120,7 @@ const EMPTY: GeminiOut = { items: [], briefing: [] };
 /** One call (plus at most one retry on an invalid shape). Never throws. */
 export async function classify(items: GeminiInput[]): Promise<GeminiResult> {
   const key = process.env.GEMINI_API_KEY;
-  const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  const model = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
   if (!key) return { ok: false, data: EMPTY, input_tokens: 0, output_tokens: 0, error: 'GEMINI_API_KEY not set' };
   if (!items.length) return { ok: true, data: EMPTY, input_tokens: 0, output_tokens: 0 };
 
