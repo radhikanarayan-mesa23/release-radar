@@ -46,3 +46,8 @@ next-env.d.ts
 
 # rendered email previews (local only)
 email-preview/
+
+# CI workflow is written and ready at .github/workflows/ci.yml, but pushing a
+# workflow needs a token with `workflow` scope. Enable it with:
+#   gh auth refresh -s workflow && git add -f .github && git commit -m "ci" && git push
+.github/

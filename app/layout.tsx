@@ -9,8 +9,19 @@ import { nextMondayRun } from '@/lib/schedule';
 import { sql } from '@/lib/db';
 
 export const metadata: Metadata = {
-  title: 'Release Radar',
-  description: 'Security fixes and breaking changes first, every Monday 08:00 IST.',
+  metadataBase: new URL(process.env.APP_URL || 'https://release-radar-radhi2.vercel.app'),
+  title: { default: 'Release Radar', template: '%s · Release Radar' },
+  description:
+    'An AI release digest for the repos your product depends on. Security fixes and breaking changes first, every Monday 08:00 IST.',
+  applicationName: 'Release Radar',
+  openGraph: {
+    type: 'website',
+    siteName: 'Release Radar',
+    title: 'Release Radar',
+    description: 'Security fixes and breaking changes first, every Monday 08:00 IST.',
+  },
+  twitter: { card: 'summary_large_image' },
+  robots: { index: true, follow: true },
 };
 
 async function headline() {

@@ -1,5 +1,7 @@
 # Release Radar
 
+[![CI](https://github.com/radhikanarayan-mesa23/release-radar/actions/workflows/ci.yml/badge.svg)](https://github.com/radhikanarayan-mesa23/release-radar/actions/workflows/ci.yml)
+
 Keerthi watches 20+ public GitHub repos — payment gateways, auth libraries, banking APIs.
 GitHub Watch is a firehose, so last quarter a security patch sat unread for **11 days**.
 Release Radar reads only *releases*, puts security fixes and breaking changes at the top, and mails her a 5-minute digest every Monday 08:00 IST.
@@ -83,7 +85,12 @@ fallback is logged in the ticket history — an email failure never blocks the a
 ## Scripts
 
 ```
-npm run test:rules        # 13 fixtures, no network, no AI
+npm run test:rules        # 13 fixtures, no network, no AI, no database
+npm run smoke             # lib/github.ts + lib/rules.ts against real repos
+npm run eval:local        # one live Gemini call over the fixtures, graded offline
 npm run dry-run -- 30     # live 30-day run against Neon + GitHub + Gemini
 npm run build
 ```
+
+CI runs `test:rules`, eslint and the production build on every push. The rules
+test needs no secrets, so the classifier can never silently regress.

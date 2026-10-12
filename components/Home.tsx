@@ -257,11 +257,13 @@ export default function Home({
               {tab === 'fixed' && (visibleFixed.length ? visibleFixed.map((t) => (
                 <div key={t.ticket_id}>
                   <ReleaseCard item={toCard(t)} ticket={ticketOf(t)} team={team} admin={admin} />
-                  <p className="px-4 pt-1 text-xs text-muted">
-                    {t.status === 'fixed' ? 'Fixed' : 'Dismissed'} by {t.updated_by ?? 'admin'}
-                    {t.fixed_at ? ` · ${new Date(t.fixed_at).toLocaleDateString('en-GB')}` : ''}
-                    {admin && ' · set status back to Open to reopen'}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-2 px-4 pt-1.5 text-xs text-muted">
+                    <span>
+                      {t.status === 'fixed' ? 'Fixed' : 'Dismissed'} by {t.updated_by ?? 'admin'}
+                      {t.fixed_at ? ` · ${new Date(t.fixed_at).toLocaleDateString('en-GB')}` : ''}
+                    </span>
+                    {admin && <Reopen ticketId={t.ticket_id} />}
+                  </div>
                 </div>
               )) : <Empty>Nothing resolved yet. Items you mark Fixed or Dismissed land here and stay here.</Empty>)}
 
@@ -549,6 +551,31 @@ function RepoGroup({ repo, rows }: { repo: string; rows: DigestPayload['items'] 
         </button>
       )}
     </div>
+  );
+}
+
+/** §7: the Fixed tab needs a one-click way back to Open. */
+function Reopen({ ticketId }: { ticketId: number }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  return (
+    <>
+      <button
+        disabled={busy}
+        onClick={async () => {
+          setBusy(true); setErr('');
+          const res = await fetch(`/api/tickets/${ticketId}`, {
+            method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'open' }),
+          });
+          if (res.ok) location.reload();
+          else { setErr('Could not reopen'); setBusy(false); }
+        }}
+        className="rounded-lg border border-[#4A4039] px-2 py-1 text-xs text-fg transition hover:border-accent hover:text-accent disabled:cursor-wait disabled:opacity-70">
+        {busy ? 'Reopening…' : '↺ Reopen'}
+      </button>
+      {err && <span className="text-high">{err}</span>}
+    </>
   );
 }
 
