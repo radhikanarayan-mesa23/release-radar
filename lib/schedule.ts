@@ -11,3 +11,20 @@ export function nextMondayRun(now = new Date()): string {
     hour: '2-digit', minute: '2-digit', hour12: false,
   })} IST`;
 }
+
+
+/** Time-of-day greeting in IST, computed server-side so SSR and client agree. */
+export function greetingIST(name = 'Keerthi', now = new Date()): { hello: string; when: string } {
+  const f = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Kolkata', hour: 'numeric', hour12: false,
+    weekday: 'long', day: 'numeric', month: 'long',
+  });
+  const parts = Object.fromEntries(f.formatToParts(now).map((p) => [p.type, p.value]));
+  const hour = Number(parts.hour);
+  const hello =
+    hour < 5 ? `Still up, ${name}?` :
+    hour < 12 ? `Good morning, ${name}` :
+    hour < 17 ? `Good afternoon, ${name}` :
+    `Good evening, ${name}`;
+  return { hello, when: `${parts.weekday}, ${parts.day} ${parts.month}` };
+}

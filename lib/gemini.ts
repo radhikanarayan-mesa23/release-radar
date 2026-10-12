@@ -149,3 +149,66 @@ export function costInr(input_tokens: number, output_tokens: number): number {
   const co = Number(process.env.COST_GEMINI_INR_PER_1K_OUTPUT ?? 0.21);
   return Number(((input_tokens / 1000) * ci + (output_tokens / 1000) * co).toFixed(4));
 }
+
+
+/* ------------------------------------------------------------------ *
+ * Assistant: a plain-text Gemini call grounded ONLY on the digest the
+ * pipeline already stored. Separate from classify() so the one-batched-
+ * call-per-run rule for digests is untouched.
+ * ------------------------------------------------------------------ */
+
+const ASSISTANT_SYSTEM = `You are Keerthi's release assistant. She is a senior engineer at a fintech
+startup; her product depends on payment gateways, auth libraries and banking APIs.
+
+Answer ONLY from the CONTEXT below. It is this week's release digest and her open tickets.
+If the answer is not in the context, say so plainly and suggest what to run instead — never
+invent a repo, version, CVE or date.
+
+Style: direct and short. Lead with the action. Name repos and versions exactly as written.
+Use at most 4 short bullets, or 2 sentences for a simple question. No preamble, no sign-off.
+Plain text only — no markdown headings, no bold, no code fences.`;
+
+export interface ChatTurn { role: 'user' | 'model'; text: string }
+
+export async function askAssistant(
+  question: string, context: string, history: ChatTurn[] = [],
+): Promise<{ ok: boolean; text: string; input_tokens: number; output_tokens: number; error?: string }> {
+  const key = process.env.GEMINI_API_KEY;
+  const model = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+  if (!key) return { ok: false, text: '', input_tokens: 0, output_tokens: 0, error: 'GEMINI_API_KEY not set' };
+
+  const contents = [
+    { role: 'user', parts: [{ text: `${ASSISTANT_SYSTEM}\n\nCONTEXT\n${context}` }] },
+    { role: 'model', parts: [{ text: 'Understood — I will answer only from that digest.' }] },
+    ...history.slice(-6).map((h) => ({ role: h.role, parts: [{ text: h.text }] })),
+    { role: 'user', parts: [{ text: question }] },
+  ];
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+        body: JSON.stringify({ contents, generationConfig: { temperature: 0.3, maxOutputTokens: 2048 } }),
+      },
+    );
+    const json = (await res.json()) as {
+      candidates?: { content?: { parts?: { text?: string }[] } }[];
+      usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number };
+      error?: { message?: string };
+    };
+    if (!res.ok) throw new Error(json.error?.message ?? `Gemini HTTP ${res.status}`);
+    const text = json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('').trim() ?? '';
+    return {
+      ok: !!text,
+      text: text || 'I could not produce an answer for that — try rephrasing.',
+      input_tokens: json.usageMetadata?.promptTokenCount ?? 0,
+      output_tokens: json.usageMetadata?.candidatesTokenCount ?? 0,
+    };
+  } catch (e) {
+    const error = e instanceof Error ? e.message : String(e);
+    console.warn('[assistant]', error.slice(0, 300));
+    return { ok: false, text: '', input_tokens: 0, output_tokens: 0, error };
+  }
+}

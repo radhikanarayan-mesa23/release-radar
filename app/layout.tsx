@@ -68,7 +68,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </div>
           </header>
 
-          <main className="px-4 py-5 sm:px-6">{children}</main>
+          <main className="px-4 py-5 pb-28 sm:px-6">{children}</main>
 
           <footer className="no-print px-4 pb-10 pt-6 text-xs text-muted sm:px-6">
             Public GitHub REST API · Gemini Flash · Neon · Vercel. Anyone can read; admin actions need the passcode.

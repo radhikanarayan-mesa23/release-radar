@@ -1,6 +1,6 @@
 import Home from '@/components/Home';
 import { isAdmin } from '@/lib/auth';
-import { nextMondayRun } from '@/lib/schedule';
+import { greetingIST, nextMondayRun } from '@/lib/schedule';
 import { sql } from '@/lib/db';
 import { latestDigest, pastDigests, team, ticketEvents, tickets, type TicketRow } from '@/lib/queries';
 
@@ -44,6 +44,7 @@ export default async function Page() {
 
   return (
     <Home digest={digest} needs={needs} fixed={fixed} team={members} past={past} admin={admin}
-      events={events} nextRun={nextMondayRun()} repoCount={repoCount} evaluatingCount={evaluatingCount} />
+      events={events} nextRun={nextMondayRun()} repoCount={repoCount} evaluatingCount={evaluatingCount}
+      greeting={greetingIST()} />
   );
 }

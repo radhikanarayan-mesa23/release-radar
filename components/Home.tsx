@@ -3,6 +3,8 @@ import { useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
 import Chip, { priorityLabel, PRIORITY_HEX } from './Chip';
 import ReleaseCard, { type CardItem, type CardTicket, type TeamOption } from './ReleaseCard';
+import CountUp from './CountUp';
+import Assistant from './Assistant';
 import type { DigestPayload } from '@/lib/pipeline';
 import type { TicketRow } from '@/lib/queries';
 
@@ -22,12 +24,13 @@ export interface PastRow {
 }
 
 export default function Home({
-  digest, needs, fixed, team, past, admin, events, nextRun, repoCount, evaluatingCount,
+  digest, needs, fixed, team, past, admin, events, nextRun, repoCount, evaluatingCount, greeting,
 }: {
   digest: DigestPayload | null; needs: TicketRow[]; fixed: TicketRow[]; team: TeamOption[];
   past: PastRow[]; admin: boolean;
   events: Record<number, { at: string; by_name: string | null; action: string; detail: string | null }[]>;
   nextRun: string; repoCount: number; evaluatingCount: number;
+  greeting: { hello: string; when: string };
 }) {
   const [tab, setTab] = useState<Tab>('needs');
   const [filter, setFilter] = useState<string | null>(null);
@@ -100,8 +103,19 @@ export default function Home({
         <p className="card border-medium/40 bg-medium/10 px-4 py-2 text-sm text-medium">{digest.ai_banner}</p>
       )}
 
+      {/* ---- greeting ---- */}
+      <header className="rise">
+        <h1 className="shimmer text-2xl font-semibold tracking-tight sm:text-3xl">{greeting.hello}</h1>
+        <p className="mt-1 text-sm text-muted">
+          {greeting.when} ·{' '}
+          {need > 0
+            ? <>{need} release{need > 1 ? 's' : ''} waiting on you{queue.HIGH ? <>, {queue.HIGH} marked high</> : null}.</>
+            : <>nothing urgent — everything tracked shipped routine updates.</>}
+        </p>
+      </header>
+
       {/* ---- key metrics: each tile filters the lists below ---- */}
-      <section aria-label="Key metrics" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+      <section aria-label="Key metrics" className="stagger grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <Tile label="Need attention" value={need} hint={`${unassigned} unassigned`} accent
           onClick={() => { setFilter(null); setTab('needs'); }} active={!filter && tab === 'needs'} />
         {PRIORITIES.map((p) => (
@@ -117,7 +131,7 @@ export default function Home({
       <div className="grid gap-5 xl:grid-cols-3">
         {/* ---- focus + tabs ---- */}
         <div className="min-w-0 space-y-5 xl:col-span-2">
-          <section className="card p-5">
+          <section className="card rise p-5" style={{ animationDelay: '.1s' }}>
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <h1 className="text-lg font-semibold">Your focus today</h1>
               {digest && (
@@ -174,7 +188,7 @@ export default function Home({
             )}
           </section>
 
-          <section className="card">
+          <section className="card rise" style={{ animationDelay: '.16s' }}>
             <div className="no-print flex flex-wrap items-center gap-1 border-b border-line px-2 pt-2">
               {TABS.map(([k, label, n]) => (
                 <button key={k} onClick={() => setTab(k)}
@@ -264,7 +278,7 @@ export default function Home({
         </div>
 
         {/* ---- actions sidebar ---- */}
-        <aside className="no-print space-y-4">
+        <aside className="no-print space-y-4 rise" style={{ animationDelay: '.2s' }}>
           <section className="card p-4">
             <h2 className="text-sm font-semibold">Run a check</h2>
             <p className="mt-1 text-xs text-muted">Runs automatically every Monday 08:00 IST. {nextRun}.</p>
@@ -351,6 +365,8 @@ export default function Home({
           )}
         </aside>
       </div>
+
+      <Assistant need={need} />
     </div>
   );
 }
@@ -363,12 +379,14 @@ function Tile({ label, value, hint, dot, accent, active, onClick }: {
 }) {
   return (
     <button onClick={onClick}
-      className={`card card-hover p-3 text-left ${active ? 'border-accent/60' : ''}`}>
+      className={`card card-hover lift p-3 text-left ${active ? 'border-accent/60' : ''}`}>
       <div className="flex items-center gap-1.5">
         {dot && <span className="h-2 w-2 rounded-full" style={{ background: dot }} />}
         <span className="text-[11px] uppercase tracking-wider text-muted">{label}</span>
       </div>
-      <div className={`mt-1 text-2xl font-semibold ${accent ? 'text-accent' : ''}`}>{value}</div>
+      <div className={`mt-1 text-2xl font-semibold ${accent ? 'text-accent' : ''}`}>
+        <CountUp to={value} />
+      </div>
       {hint && <div className="text-[11px] text-muted">{hint}</div>}
     </button>
   );
