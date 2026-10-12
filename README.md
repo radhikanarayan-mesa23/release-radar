@@ -13,7 +13,11 @@ Release Radar reads only *releases*, puts security fixes and breaking changes at
 ![Components map](./components_map.png)
 
 The map is regenerated from [`docs/components-map.html`](./docs/components-map.html), so it stays
-in step with the build rather than drifting from it. The original v2 map shipped with the brief is
+in step with the build rather than drifting from it. Arrows are computed from the node positions at
+render time: the **solid orange** line is one weekly run end to end (cron → repo list → GitHub →
+rules → codebase impact → one Gemini call → stored → delivered), **blue dashed** is what feeds it
+(her config, the memory of previous tags and tickets, the spend guards), and **green dashed** is
+what it produces (dashboard, assignment mail, and the digest the assistant is grounded on). The original v2 map shipped with the brief is
 kept as `components_map_v2_original.png` for comparison — items marked **NEW** on the current map
 are what was added after it: codebase-impact matching, the editable rubric, Telegram alerts, the
 grounded assistant, spend guards and the landing page.
