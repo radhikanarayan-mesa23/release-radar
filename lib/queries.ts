@@ -18,8 +18,18 @@ export interface RunRow {
   errors: { repo: string; error: string }[] | null;
 }
 
+/**
+ * The digest Keerthi reads — the newest weekly or manual run.
+ *
+ * The daily 08:30 sweep is a 1-day SECURITY alert, not her digest: letting it
+ * win would blank the board to a single day every morning. Prefer a weekly or
+ * manual digest, and fall back to a daily one only if nothing else exists.
+ */
 export async function latestDigest(): Promise<DigestPayload | null> {
-  const rows = (await sql`select payload from digests order by created_at desc limit 1`) as { payload: DigestPayload }[];
+  const rows = (await sql`
+    select payload from digests
+    order by (kind <> 'daily-security') desc, created_at desc
+    limit 1`) as { payload: DigestPayload }[];
   return rows[0]?.payload ?? null;
 }
 

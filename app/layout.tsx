@@ -15,8 +15,11 @@ export const metadata: Metadata = {
 
 async function headline() {
   try {
+    // Same preference as latestDigest(): the daily security sweep must not
+    // become "the digest" in the bell.
     const rows = (await sql`
-      select kind, counts, created_at from digests order by created_at desc limit 1`) as {
+      select kind, counts, created_at from digests
+      order by (kind <> 'daily-security') desc, created_at desc limit 1`) as {
         kind: string; counts: Record<string, number>; created_at: string }[];
     if (!rows.length) return { need: 0, kind: null, generatedAt: null };
     const c = rows[0].counts ?? {};
