@@ -79,7 +79,7 @@ export default function ReleaseCard({
   }
 
   return (
-    <article className="card overflow-hidden">
+    <article className="card card-settle overflow-hidden">
       <div className="flex">
         <div className={`w-[3px] shrink-0 ${BAR[item.priority] ?? 'bg-low'}`} aria-hidden />
         <div className="min-w-0 flex-1 p-4">

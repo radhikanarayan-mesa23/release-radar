@@ -133,3 +133,40 @@ body { -webkit-font-smoothing: antialiased; }
 /* tab strip scrolls rather than wrapping, with no visible scrollbar */
 .scroll-x { scrollbar-width: none; -ms-overflow-style: none; }
 .scroll-x::-webkit-scrollbar { display: none; }
+
+/* ---- card motion ---- */
+/* A card that reacts: lifts, warms its border, and throws a soft accent glow. */
+.card-glow {
+  position: relative;
+  transition: transform .22s cubic-bezier(.2,.7,.3,1),
+              border-color .22s ease,
+              box-shadow .22s ease,
+              background-color .22s ease;
+}
+.card-glow:hover {
+  transform: translateY(-3px);
+  border-color: rgba(249,115,22,.35);
+  box-shadow: 0 10px 30px -12px rgba(249,115,22,.35), 0 0 0 1px rgba(249,115,22,.12);
+  background: var(--color-ink3);
+}
+
+/* One slow highlight sweeping across a tile as the pointer arrives. */
+.card-sheen { position: relative; overflow: hidden; }
+.card-sheen::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(251,191,36,.10) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform .75s cubic-bezier(.2,.7,.3,1);
+  pointer-events: none;
+}
+.card-sheen:hover::after { transform: translateX(120%); }
+
+/* Panels settle in place rather than reacting to the pointer. */
+.card-settle { transition: border-color .25s ease, box-shadow .25s ease; }
+.card-settle:hover { border-color: #40382F; box-shadow: 0 8px 28px -18px rgba(0,0,0,.9); }
+
+@media (prefers-reduced-motion: reduce) {
+  .card-glow:hover { transform: none; }
+  .card-sheen::after { display: none; }
+}

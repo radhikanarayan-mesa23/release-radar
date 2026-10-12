@@ -1,5 +1,6 @@
 'use client';
 import { useRef, useState } from 'react';
+import FlowButton from './FlowButton';
 
 interface Msg { role: 'user' | 'model'; text: string }
 
@@ -47,7 +48,9 @@ export default function Assistant({ need }: { need: number }) {
   if (!open) {
     return (
       <button onClick={() => setOpen(true)} aria-label="Chat with Repository Buddy"
-        className="glow lift no-print fixed bottom-5 right-5 z-40 flex items-center gap-2.5 rounded-full py-2.5 pl-2.5 pr-4 text-left text-ink0 shadow-xl">
+        className="glow lift no-print group fixed bottom-5 right-5 z-40 flex items-center gap-2.5
+          rounded-full py-2.5 pl-2.5 pr-4 text-left text-ink0 shadow-xl
+          transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)] hover:rounded-[18px] active:scale-[0.97]">
         <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink0/20">
           <Bot />
           {need > 0 && (
@@ -89,12 +92,9 @@ export default function Assistant({ need }: { need: number }) {
                 the digest already on this dashboard, so I can&apos;t invent a version or a CVE.
               </span>
             </p>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-3 flex flex-col items-start gap-2">
               {SUGGESTED.map((s) => (
-                <button key={s} onClick={() => ask(s)}
-                  className="lift rounded-xl border border-[#4A4039] bg-ink0 px-3 py-1.5 text-left text-xs hover:border-accent hover:text-accent">
-                  {s}
-                </button>
+                <FlowButton key={s} size="sm" text={s} onClick={() => ask(s)} />
               ))}
             </div>
           </div>
@@ -128,8 +128,21 @@ export default function Assistant({ need }: { need: number }) {
         <input value={q} onChange={(e) => setQ(e.target.value)} disabled={busy}
           placeholder="Ask Repository Buddy…" aria-label="Your question"
           className="min-w-0 flex-1 rounded-xl border border-[#4A4039] bg-ink0 px-3 py-2 text-sm text-fg placeholder:text-muted focus:border-accent focus:outline-none disabled:opacity-70" />
-        <button type="submit" disabled={busy || !q.trim()}
-          className="glow rounded-xl px-3 py-2 text-sm font-semibold text-ink0 disabled:opacity-40">→</button>
+        <button type="submit" disabled={busy || !q.trim()} aria-label="Send"
+          className="group relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden
+            rounded-full border-[1.5px] border-accent/40 bg-accent/[0.08] text-accent
+            transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]
+            hover:rounded-[12px] hover:border-transparent hover:text-ink0
+            active:scale-[0.95] disabled:opacity-40 disabled:hover:rounded-full disabled:hover:text-accent">
+          <span aria-hidden className="glow absolute inset-0 origin-center scale-[0.1] rounded-full opacity-0
+            transition-all duration-[700ms] ease-[cubic-bezier(0.19,1,0.22,1)]
+            group-hover:scale-100 group-hover:rounded-[12px] group-hover:opacity-100
+            group-disabled:opacity-0 group-disabled:scale-[0.1]" />
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"
+            strokeLinecap="round" strokeLinejoin="round" className="relative z-[1] h-4 w-4">
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </button>
       </form>
     </div>
   );

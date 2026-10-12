@@ -216,7 +216,7 @@ export default function Home({
       <div className="grid gap-5 xl:grid-cols-3">
         {/* ---- focus + tabs ---- */}
         <div className="min-w-0 space-y-5 xl:col-span-2">
-          <section className="card rise p-5" style={{ animationDelay: '.1s' }}>
+          <section className="card card-settle rise p-5" style={{ animationDelay: '.1s' }}>
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <h1 className="text-lg font-semibold">Your focus today</h1>
               {digest && (
@@ -301,7 +301,7 @@ export default function Home({
               })}
             </div>
 
-            <div className="card rounded-tl-none">
+            <div className="card card-settle rounded-tl-none">
               {/* controls get their own full-width row instead of crowding the tabs */}
               {(tab === 'needs' || tab === 'fixed' || tab === 'all') && (
                 <div className="no-print flex flex-wrap items-center gap-2 border-b border-line px-3 py-2.5">
@@ -387,7 +387,7 @@ export default function Home({
               {tab === 'evaluating' && (digest?.evaluating.length ? (
                 <div className="grid gap-3 sm:grid-cols-2">
                   {digest.evaluating.map((e) => (
-                    <article key={e.repo} className="card card-hover p-4">
+                    <article key={e.repo} className="card card-glow card-sheen p-4">
                       <header className="flex items-center gap-2">
                         <img src={e.avatar} alt="" className="h-6 w-6 rounded-full" />
                         <a href={`https://github.com/${e.repo}`} target="_blank" rel="noreferrer"
@@ -437,7 +437,7 @@ export default function Home({
 
         {/* ---- actions sidebar ---- */}
         <aside className="no-print space-y-4 rise" style={{ animationDelay: '.2s' }}>
-          <section className="card p-4">
+          <section className="card card-settle p-4">
             <h2 className="text-sm font-semibold">Run a check</h2>
             <p className="mt-1 text-xs text-muted">Runs automatically every Monday 08:00 IST. {nextRun}.</p>
             {admin ? (
@@ -477,7 +477,7 @@ export default function Home({
             {msg && <p className="mt-2 text-xs text-accent">{msg}</p>}
           </section>
 
-          <section className="card p-4">
+          <section className="card card-settle p-4">
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-sm font-semibold">Repositories watched</h2>
               <Link href="/repos" className="shrink-0 text-xs text-accent hover:underline">Manage →</Link>
@@ -497,7 +497,7 @@ export default function Home({
             </Link>
           </section>
 
-          <section className="card p-4">
+          <section className="card card-settle p-4">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold">Download a report</h2>
               <Link href="/report" className="text-xs text-accent hover:underline">All →</Link>
@@ -511,7 +511,7 @@ export default function Home({
             <p className="mt-2 text-xs text-muted">HTML prints to PDF · CSV opens in Excel</p>
           </section>
 
-          <section className="card p-4">
+          <section className="card card-settle p-4">
             <h2 className="text-sm font-semibold">Recent checks</h2>
             <PastList past={past} />
           </section>
@@ -539,7 +539,7 @@ function Tile({ label, value, hint, dot, accent, active, onClick }: {
 }) {
   return (
     <button onClick={onClick}
-      className={`card card-hover lift p-3 text-left ${active ? 'border-accent/60' : ''}`}>
+      className={`card card-glow card-sheen p-3 text-left ${active ? 'border-accent/60' : ''}`}>
       <div className="flex items-center gap-1.5">
         {dot && <span className="h-2 w-2 rounded-full" style={{ background: dot }} />}
         <span className="text-[11px] uppercase tracking-wider text-muted">{label}</span>
