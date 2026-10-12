@@ -15,7 +15,7 @@ export default function EvalButton() {
           setMsg(res.ok ? `Stored ${j.items} results (${j.input_tokens}/${j.output_tokens} tokens). Reloading…` : (j.error ?? 'Failed'));
           if (res.ok) setTimeout(() => location.reload(), 1200);
         })}
-        className="rounded-lg bg-ink px-3 py-2 text-sm text-white disabled:opacity-40"
+        className="rounded-lg glow px-3 py-2 text-sm font-medium text-ink0 disabled:opacity-40"
       >
         {pending ? 'Running…' : 'Re-run Gemini evaluation'}
       </button>

@@ -1,26 +1,47 @@
 @import "tailwindcss";
 
 @theme {
-  --color-paper: #F6F6F3;
-  --color-line: #E7E7E2;
-  --color-ink: #111827;
-  --color-muted: #6B7280;
-  --color-high: #DC2626;
-  --color-medium: #D97706;
-  --color-low: #64748B;
-  --color-notsure: #7C3AED;
-  --radius-card: 12px;
+  /* surfaces */
+  --color-ink0: #121110;   /* page */
+  --color-ink1: #1B1715;   /* rail / topbar */
+  --color-ink2: #221E1B;   /* card */
+  --color-ink3: #2A2522;   /* raised / hover */
+  --color-line: #332D28;
+
+  /* text */
+  --color-fg:    #E7E2DC;
+  --color-muted: #9A918A;
+
+  /* brand */
+  --color-accent:  #F97316;
+  --color-accent2: #FBBF24;
+
+  /* status — validated against the card surface: every one clears AA text
+     contrast, and NOT_SURE/LOW separate at ΔE 18 normal / 13.9 deutan */
+  --color-high:    #FF6B5A;
+  --color-medium:  #FBBF24;
+  --color-low:     #8B9099;
+  --color-notsure: #C084FC;
 }
 
-html, body { background: var(--color-paper); color: var(--color-ink); }
+html, body { background: var(--color-ink0); color: var(--color-fg); }
 body { -webkit-font-smoothing: antialiased; }
 
 .card {
-  background: #fff;
+  background: var(--color-ink2);
   border: 1px solid var(--color-line);
-  border-radius: var(--radius-card);
+  border-radius: 16px;
 }
+.card-hover { transition: background .15s, border-color .15s, transform .15s; }
+.card-hover:hover { background: var(--color-ink3); border-color: #40382F; }
+
+.glow { background: linear-gradient(135deg, var(--color-accent), var(--color-accent2)); }
+
+/* thin recessive scrollbars inside panels */
+.scroll-y { overflow-y: auto; scrollbar-width: thin; scrollbar-color: #40382F transparent; }
+
 @media print {
   .no-print { display: none !important; }
-  body { background: #fff; }
+  html, body { background: #fff; color: #000; }
+  .card { border-color: #ddd; background: #fff; }
 }

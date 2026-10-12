@@ -1,6 +1,7 @@
 import Home from '@/components/Home';
 import { isAdmin } from '@/lib/auth';
 import { nextMondayRun } from '@/lib/schedule';
+import { sql } from '@/lib/db';
 import { latestDigest, pastDigests, team, ticketEvents, tickets, type TicketRow } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
@@ -12,6 +13,7 @@ export default async function Page() {
     members: { id: number; name: string }[] = [], past: Awaited<ReturnType<typeof pastDigests>> = [],
     error: string | null = null;
 
+  let repoCount = 0, evaluatingCount = 0;
   try {
     [digest, needs, fixed, members, past] = await Promise.all([
       latestDigest(), tickets(['open', 'in_progress']), tickets(['fixed', 'dismissed']),
@@ -19,6 +21,11 @@ export default async function Page() {
     ]);
     const rows = await ticketEvents([...needs, ...fixed].map((t) => t.ticket_id));
     for (const e of rows) (events[e.ticket_id] ??= []).push(e);
+    const rc = (await sql`
+      select count(*) filter (where active)::int as tracked,
+             count(*) filter (where active and category = 'evaluating')::int as evaluating
+      from repos`) as { tracked: number; evaluating: number }[];
+    repoCount = rc[0].tracked; evaluatingCount = rc[0].evaluating;
   } catch (e) {
     error = e instanceof Error ? e.message : String(e);
   }
@@ -36,7 +43,7 @@ export default async function Page() {
   }
 
   return (
-    <Home digest={digest} needs={needs} fixed={fixed} team={members}
-      past={past} admin={admin} events={events} nextRun={nextMondayRun()} />
+    <Home digest={digest} needs={needs} fixed={fixed} team={members} past={past} admin={admin}
+      events={events} nextRun={nextMondayRun()} repoCount={repoCount} evaluatingCount={evaluatingCount} />
   );
 }

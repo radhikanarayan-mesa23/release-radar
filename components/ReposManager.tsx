@@ -72,14 +72,14 @@ export default function ReposManager({
           />
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
             <select value={category} onChange={(e) => setCategory(e.target.value as 'dependency' | 'evaluating')}
-              className="rounded border border-line bg-white px-2 py-1">
+              className="rounded border border-line bg-ink3 px-2 py-1">
               <option value="dependency">dependency</option>
               <option value="evaluating">evaluating</option>
             </select>
             <input value={why} onChange={(e) => setWhy(e.target.value)} placeholder="Why do you track these?"
               className="min-w-[12rem] flex-1 rounded border border-line px-2 py-1" />
             <button onClick={add} disabled={pending || !text.trim()}
-              className="rounded-lg bg-ink px-3 py-1.5 text-white disabled:opacity-40">
+              className="rounded-lg glow px-3 py-1.5 font-medium text-ink0 disabled:opacity-40">
               {pending ? 'Working…' : 'Add'}
             </button>
           </div>
@@ -169,7 +169,7 @@ function TeamPanel({ team, admin }: { team: Member[]; admin: boolean }) {
           <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@company.com" className="rounded border border-line px-2 py-1" />
           <input value={role} onChange={(e) => setRole(e.target.value)} placeholder="Role" className="rounded border border-line px-2 py-1" />
           <button onClick={add} disabled={pending || !name || !email}
-            className="rounded-lg bg-ink px-3 py-1.5 text-white disabled:opacity-40">Add teammate</button>
+            className="rounded-lg glow px-3 py-1.5 font-medium text-ink0 disabled:opacity-40">Add teammate</button>
           {msg && <span className="text-xs text-high">{msg}</span>}
         </div>
       )}

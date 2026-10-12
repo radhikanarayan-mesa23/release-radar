@@ -41,7 +41,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
           <form action={login} className="mt-4 space-y-3">
             <input name="passcode" type="password" required placeholder="Passcode" autoComplete="current-password"
               className="w-full rounded-lg border border-line px-3 py-2 text-sm" />
-            <button className="w-full rounded-lg bg-ink px-3 py-2 text-sm text-white">Log in</button>
+            <button className="w-full rounded-lg glow px-3 py-2 text-sm font-medium text-ink0">Log in</button>
             {e && <p className="text-sm text-high">Wrong passcode.</p>}
           </form>
         )}

@@ -25,9 +25,9 @@ export default async function Report() {
             <div className="font-medium">{w.label}</div>
             <div className="mt-3 flex gap-2 text-sm">
               <a href={`/api/report?days=${w.days}&format=html`} target="_blank" rel="noreferrer"
-                className="rounded-lg border border-line px-3 py-1.5 hover:bg-paper">HTML</a>
+                className="rounded-lg border border-line px-3 py-1.5 hover:bg-ink3">HTML</a>
               <a href={`/api/report?days=${w.days}&format=csv`}
-                className="rounded-lg border border-line px-3 py-1.5 hover:bg-paper">CSV</a>
+                className="rounded-lg border border-line px-3 py-1.5 hover:bg-ink3">CSV</a>
             </div>
           </div>
         ))}
