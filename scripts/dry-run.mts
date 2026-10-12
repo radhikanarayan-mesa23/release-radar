@@ -5,11 +5,14 @@ import { sql } from '../lib/db';
 const days = Number(process.argv[2] ?? 7);
 const email = process.argv.includes('--email');
 
-const missing = ['DATABASE_URL', 'GITHUB_TOKEN', 'GEMINI_API_KEY'].filter((k) => !process.env[k]);
+const missing = ['DATABASE_URL', 'GEMINI_API_KEY'].filter((k) => !process.env[k]);
 if (missing.length) {
   console.error(`Missing env: ${missing.join(', ')} — put them in .env`);
   process.exit(1);
 }
+// GitHub works unauthenticated at 60 req/hr; a full 24-repo run needs ~52, so a
+// token is strongly recommended but not required.
+if (!process.env.GITHUB_TOKEN) console.warn('WARN: no GITHUB_TOKEN — unauthenticated GitHub, 60 req/hr\n');
 
 console.log(`Running ${days}-day digest (email=${email})…\n`);
 const t0 = Date.now();

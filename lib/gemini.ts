@@ -97,7 +97,7 @@ async function callOnce(prompt: string, model: string, key: string) {
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: 'application/json', temperature: 0.2, maxOutputTokens: 8192 },
+        generationConfig: { responseMimeType: 'application/json', temperature: 0.2, maxOutputTokens: 32768 },
       }),
     },
   );
