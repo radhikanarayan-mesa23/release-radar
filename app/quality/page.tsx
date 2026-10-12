@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 function Stat({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
   return (
-    <div className="card p-4">
+    <div className="card card-glow card-sheen p-4">
       <div className="text-xs text-muted">{label}</div>
       <div className="mt-1 text-2xl font-semibold">{value}</div>
       {hint && <div className="text-xs text-muted">{hint}</div>}
@@ -28,7 +28,7 @@ export default async function Quality() {
 
   return (
     <div className="space-y-4">
-      <header className="card p-5">
+      <header className="card card-settle p-5">
         <h1 className="text-xl font-semibold">Classifier quality</h1>
         <p className="mt-1 text-sm text-muted">
           <code>lib/rules.ts</code> run live over {score.total} synthetic fixtures, next to the last stored Gemini
@@ -43,14 +43,14 @@ export default async function Quality() {
         {!stored && <p className="mt-2 text-xs text-muted">No Gemini evaluation stored yet — the AI columns are empty.</p>}
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Rules only" value={`${score.rulesOnly}/${score.total}`} hint="no AI call" />
         <Stat label="Rules + Gemini" value={`${score.withAi}/${score.total}`} />
         <Stat label="Security fixes missed" value={score.securityMissed} hint="must stay 0" />
         <Stat label="Caught by Gemini only" value={score.aiOnly} hint="F10 is designed for this" />
       </div>
 
-      <div className="card overflow-x-auto">
+      <div className="card card-settle overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="border-b border-line text-left text-xs text-muted">
             <tr>

@@ -62,7 +62,7 @@ export default function ReposManager({
   return (
     <div className="space-y-4">
       {admin && (
-        <section className="card p-4">
+        <section className="card card-settle p-4">
           <h2 className="text-sm font-semibold">Add repositories</h2>
           <p className="text-xs text-muted">
             Paste several GitHub links or <code>owner/name</code> values — separated by spaces, commas or new lines.
@@ -91,7 +91,7 @@ export default function ReposManager({
       )}
 
       {groups.map(([label, rows]) => (
-        <section key={label} className="card">
+        <section key={label} className="card card-settle">
           <h2 className="border-b border-line px-4 py-3 text-sm font-semibold">{label} ({rows.length})</h2>
           <ul className="divide-y divide-line">
             {rows.map((r) => {
@@ -147,7 +147,7 @@ function ManifestPanel({ admin, count, updated }: { admin: boolean; count: numbe
   }
 
   return (
-    <section className="card p-4">
+    <section className="card card-settle p-4">
       <h2 className="text-sm font-semibold">Your package.json</h2>
       <p className="mt-1 text-xs text-muted">
         Paste it once and every flagged release says whether it <b className="text-high">affects you</b> —
@@ -211,7 +211,7 @@ function TeamPanel({ team, admin }: { team: Member[]; admin: boolean }) {
   }
 
   return (
-    <section className="card">
+    <section className="card card-settle">
       <h2 className="border-b border-line px-4 py-3 text-sm font-semibold">Team ({team.length})</h2>
       <ul className="divide-y divide-line">
         {team.map((m) => (

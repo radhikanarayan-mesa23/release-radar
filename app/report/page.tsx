@@ -19,9 +19,9 @@ export default async function Report() {
         </p>
       </header>
       {!admin && <p className="card p-4 text-sm">Reports are admin-only. <a href="/login" className="underline">Log in</a>.</p>}
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="stagger grid gap-3 sm:grid-cols-3">
         {windows.map((w) => (
-          <div key={w.days} className="card p-4">
+          <div key={w.days} className="card card-glow card-sheen p-4">
             <div className="font-medium">{w.label}</div>
             <div className="mt-3 flex gap-2 text-sm">
               <a href={`/api/report?days=${w.days}&format=html`} target="_blank" rel="noreferrer"

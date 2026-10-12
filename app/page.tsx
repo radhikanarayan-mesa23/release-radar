@@ -70,7 +70,7 @@ export default async function About() {
             [s.security, 'security-flagged'],
             [s.runs, 'checks run'],
           ].map(([v, l]) => (
-            <div key={String(l)} className="card p-4">
+            <div key={String(l)} className="card card-glow card-sheen p-4">
               <div className="text-2xl font-semibold text-accent">{v as number}</div>
               <div className="mt-0.5 text-xs text-muted">{l as string}</div>
             </div>
@@ -78,7 +78,7 @@ export default async function About() {
         </section>
       )}
 
-      <section className="card mt-12 flex flex-wrap items-center justify-between gap-4 p-6">
+      <section className="card card-settle mt-12 flex flex-wrap items-center justify-between gap-4 p-6">
         <div>
           <h2 className="text-lg font-semibold">See this week</h2>
           <p className="mt-1 text-sm text-muted">Real data, updated by a scheduled run every Monday at 08:00 IST.</p>

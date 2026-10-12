@@ -15,7 +15,7 @@ function Meter({ label, used, cap }: { label: string; used: number; cap: number 
   const pct = Math.min(100, Math.round((used / Math.max(cap, 1)) * 100));
   const tone = pct >= 90 ? 'bg-high' : pct >= 60 ? 'bg-medium' : 'bg-accent';
   return (
-    <div className="rounded-xl border border-line bg-ink0 p-3">
+    <div className="card-glow rounded-xl border border-line bg-ink0 p-3">
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-xs text-muted">{label}</span>
         <span className="text-sm font-semibold">{used}<span className="text-xs font-normal text-muted"> / {cap}</span></span>
@@ -29,7 +29,7 @@ function Meter({ label, used, cap }: { label: string; used: number; cap: number 
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="card p-4">
+    <div className="card card-glow card-sheen p-4">
       <div className="text-xs text-muted">{label}</div>
       <div className="mt-1 font-semibold">{value}</div>
     </div>
@@ -59,14 +59,14 @@ export default async function Status() {
       <h1 className="text-xl font-semibold">Status</h1>
       {dbError && <p className="card p-4 text-sm text-high">Database not reachable: {dbError}</p>}
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Last run" value={last ? `${new Date(last.started_at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}` : '—'} />
         <Stat label="Next Monday run" value={nextMondayRun()} />
         <Stat label="Active repos" value={String(repoCount)} />
         <Stat label="AI cost this month" value={`₹${monthCost.toFixed(4)}`} />
       </div>
 
-      <section className="card p-4">
+      <section className="card card-settle p-4">
         <h2 className="text-sm font-semibold">AI budget guards (last 24h)</h2>
         <p className="mt-1 text-xs text-muted">
           This is a public demo, so the endpoints that cost money are capped. Reaching a cap never
@@ -84,7 +84,7 @@ export default async function Status() {
         </p>
       </section>
 
-      <section className="card overflow-x-auto">
+      <section className="card card-settle overflow-x-auto">
         <h2 className="border-b border-line px-4 py-3 text-sm font-semibold">Runs</h2>
         <table className="w-full text-sm">
           <thead className="text-left text-xs text-muted">
@@ -110,7 +110,7 @@ export default async function Status() {
         </table>
       </section>
 
-      <section className="card p-4">
+      <section className="card card-settle p-4">
         <h2 className="text-sm font-semibold">Environment</h2>
         <p className="text-xs text-muted">Names only — values are never shown or sent to the client.</p>
         <ul className="mt-3 grid gap-1 text-sm sm:grid-cols-2">
@@ -125,7 +125,7 @@ export default async function Status() {
       </section>
 
       {!!repoErrors.length && (
-        <section className="card p-4">
+        <section className="card card-settle p-4">
           <h2 className="text-sm font-semibold">Repo errors (last run)</h2>
           <ul className="mt-2 space-y-1 text-sm text-high">
             {repoErrors.map((e) => <li key={e.repo}>{e.repo}: {e.error}</li>)}

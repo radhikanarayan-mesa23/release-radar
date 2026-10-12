@@ -322,8 +322,10 @@ export default function Home({
 
                   {tab === 'needs' && manifestCount > 0 && (
                     <button onClick={() => setOnlyMine(!onlyMine)}
-                      className={`rounded-lg border px-2.5 py-1.5 text-xs transition ${
-                        onlyMine ? 'border-accent bg-accent/15 text-accent' : 'border-line text-muted hover:text-fg'}`}>
+                      className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium text-accent transition ${
+                        onlyMine
+                          ? 'border-accent bg-accent/25'
+                          : 'border-accent/45 bg-accent/10 hover:border-accent hover:bg-accent/20'}`}>
                       {onlyMine ? '✓ ' : ''}Only what affects me
                     </button>
                   )}
