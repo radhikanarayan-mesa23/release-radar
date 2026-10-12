@@ -112,33 +112,55 @@ export default function ReleaseCard({
             </ul>
           )}
 
-          {t && (
+          {t && (admin ? (
             <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3 text-sm">
-              <select aria-label="Assignee" value={t.assignee_id ?? ''} disabled={!admin || pending}
+              <select aria-label="Assignee" value={t.assignee_id ?? ''} disabled={pending}
                 onChange={(e) => patch({ assignee_id: e.target.value ? Number(e.target.value) : null })}
-                className="rounded-lg border border-line bg-ink3 px-2 py-1 text-sm disabled:opacity-40">
+                className="rounded-lg border border-[#4A4039] bg-ink0 px-2 py-1.5 text-sm text-fg disabled:cursor-wait disabled:opacity-70">
                 <option value="">Unassigned</option>
                 {team.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
               </select>
-              <select aria-label="Status" value={t.status} disabled={!admin || pending}
+              <select aria-label="Status" value={t.status} disabled={pending}
                 onChange={(e) => patch({ status: e.target.value })}
-                className="rounded-lg border border-line bg-ink3 px-2 py-1 text-sm disabled:opacity-40">
+                className="rounded-lg border border-[#4A4039] bg-ink0 px-2 py-1.5 text-sm text-fg disabled:cursor-wait disabled:opacity-70">
                 {STATUSES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select>
-              <input value={note} disabled={!admin || pending} placeholder="Add a note…"
+              <input value={note} disabled={pending} placeholder="Add a note…"
                 onChange={(e) => setNote(e.target.value)}
                 onBlur={() => note !== (t.note ?? '') && patch({ note })}
-                className="min-w-[10rem] flex-1 rounded-lg border border-line bg-ink3 px-2 py-1 text-sm placeholder:text-muted disabled:opacity-40" />
+                className="min-w-[10rem] flex-1 rounded-lg border border-[#4A4039] bg-ink0 px-2 py-1.5 text-sm text-fg placeholder:text-muted focus:border-accent focus:outline-none disabled:cursor-wait disabled:opacity-70" />
               {item.url && (
                 <a href={item.url} target="_blank" rel="noreferrer"
-                  className="rounded-lg border border-line px-2 py-1 text-xs text-muted hover:text-fg">
+                  className="rounded-lg border border-[#4A4039] px-2 py-1.5 text-xs text-muted hover:border-accent hover:text-accent">
                   Release notes ↗
                 </a>
               )}
             </div>
-          )}
+          ) : (
+            /* Locked: show the state as readable text, never ghosted-out controls. */
+            <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3 text-sm">
+              <span className="rounded-lg border border-line bg-ink3 px-2 py-1.5 text-xs">
+                <span className="text-muted">Assignee </span>{t.assignee ?? 'Unassigned'}
+              </span>
+              <span className="rounded-lg border border-line bg-ink3 px-2 py-1.5 text-xs">
+                <span className="text-muted">Status </span>
+                {STATUSES.find(([v]) => v === t.status)?.[1] ?? t.status}
+              </span>
+              {t.note && (
+                <span className="rounded-lg border border-line bg-ink3 px-2 py-1.5 text-xs">
+                  <span className="text-muted">Note </span>{t.note}
+                </span>
+              )}
+              <a href="/login" className="text-xs text-accent hover:underline">Unlock to assign →</a>
+              {item.url && (
+                <a href={item.url} target="_blank" rel="noreferrer"
+                  className="ml-auto rounded-lg border border-[#4A4039] px-2 py-1.5 text-xs text-muted hover:border-accent hover:text-accent">
+                  Release notes ↗
+                </a>
+              )}
+            </div>
+          ))}
 
-          {/* `length` is 0 when there is no history, and React renders a bare 0 — coerce. */}
           {(msg || !!t?.history?.length) && (
             <p className="mt-2 text-xs text-muted">
               {msg || (t!.history![0] &&

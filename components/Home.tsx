@@ -268,32 +268,42 @@ export default function Home({
           <section className="card p-4">
             <h2 className="text-sm font-semibold">Run a check</h2>
             <p className="mt-1 text-xs text-muted">Runs automatically every Monday 08:00 IST. {nextRun}.</p>
-            <div className="mt-3 flex items-center gap-2 text-sm">
-              <select value={days} onChange={(e) => setDays(Number(e.target.value))} disabled={!admin}
-                aria-label="Window" className="rounded-lg border border-line bg-ink3 px-2 py-1 disabled:opacity-40">
-                {[1, 7, 14, 30].map((d) => <option key={d} value={d}>{d} day{d > 1 ? 's' : ''}</option>)}
-              </select>
-              <label className="flex items-center gap-1.5 text-xs">
-                <input type="checkbox" checked={emailMe} disabled={!admin}
-                  onChange={(e) => setEmailMe(e.target.checked)} className="accent-[#F97316]" />
-                Email me
-              </label>
-            </div>
-            <button onClick={() => post('/api/run', { days, email: emailMe }, 'Fetching releases and summarising…')}
-              disabled={!admin || pending}
-              className="glow mt-3 w-full rounded-xl px-3 py-2 text-sm font-medium text-ink0 disabled:opacity-40">
-              {pending ? 'Working…' : 'Run now'}
-            </button>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <button onClick={() => post('/api/email', undefined, 'Sending…')} disabled={!admin || pending}
-                className="rounded-xl border border-line bg-ink3 px-3 py-2 text-xs hover:bg-ink2 disabled:opacity-40">
-                Email me this digest
-              </button>
-              <a href="/api/report?days=7&format=csv"
-                className="rounded-xl border border-line bg-ink3 px-3 py-2 text-center text-xs hover:bg-ink2">
-                Export CSV
-              </a>
-            </div>
+            {admin ? (
+              <>
+                <div className="mt-3 flex items-center gap-2 text-sm">
+                  <select value={days} onChange={(e) => setDays(Number(e.target.value))} disabled={pending}
+                    aria-label="Window"
+                    className="rounded-lg border border-[#4A4039] bg-ink0 px-2 py-1.5 text-fg disabled:cursor-wait disabled:opacity-70">
+                    {[1, 7, 14, 30].map((d) => <option key={d} value={d}>{d} day{d > 1 ? 's' : ''}</option>)}
+                  </select>
+                  <label className="flex items-center gap-1.5 text-xs">
+                    <input type="checkbox" checked={emailMe} disabled={pending}
+                      onChange={(e) => setEmailMe(e.target.checked)} className="accent-[#F97316]" />
+                    Email me
+                  </label>
+                </div>
+                <button onClick={() => post('/api/run', { days, email: emailMe }, 'Fetching releases and summarising…')}
+                  disabled={pending}
+                  className="glow mt-3 w-full rounded-xl px-3 py-2.5 text-sm font-semibold text-ink0 disabled:cursor-wait disabled:opacity-70">
+                  {pending ? 'Working…' : 'Run now'}
+                </button>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <button onClick={() => post('/api/email', undefined, 'Sending…')} disabled={pending}
+                    className="rounded-xl border border-[#4A4039] bg-ink0 px-3 py-2 text-xs hover:border-accent disabled:cursor-wait disabled:opacity-70">
+                    Email me this digest
+                  </button>
+                  <a href="/api/report?days=7&format=csv"
+                    className="rounded-xl border border-[#4A4039] bg-ink0 px-3 py-2 text-center text-xs hover:border-accent">
+                    Export CSV
+                  </a>
+                </div>
+              </>
+            ) : (
+              <Link href="/login"
+                className="glow mt-3 block w-full rounded-xl px-3 py-2.5 text-center text-sm font-semibold text-ink0">
+                Unlock to run, email &amp; export
+              </Link>
+            )}
             {!admin && <p className="mt-2 text-xs text-muted">Log in as admin to run, email or export.</p>}
             {msg && <p className="mt-2 text-xs text-accent">{msg}</p>}
           </section>
