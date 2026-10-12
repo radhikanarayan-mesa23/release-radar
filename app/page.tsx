@@ -1,0 +1,42 @@
+import Home from '@/components/Home';
+import { isAdmin } from '@/lib/auth';
+import { nextMondayRun } from '@/lib/schedule';
+import { latestDigest, pastDigests, team, ticketEvents, tickets, type TicketRow } from '@/lib/queries';
+
+export const dynamic = 'force-dynamic';
+
+export default async function Page() {
+  const admin = await isAdmin();
+  let digest = null, needs: TicketRow[] = [], fixed: TicketRow[] = [],
+    members: { id: number; name: string }[] = [], past: Awaited<ReturnType<typeof pastDigests>> = [],
+    events: Record<number, { at: string; by_name: string | null; action: string; detail: string | null }[]> = {},
+    error: string | null = null;
+
+  try {
+    [digest, needs, fixed, members, past] = await Promise.all([
+      latestDigest(), tickets(['open', 'in_progress']), tickets(['fixed', 'dismissed']),
+      team(), pastDigests(),
+    ]);
+    const rows = await ticketEvents([...needs, ...fixed].map((t) => t.ticket_id));
+    for (const e of rows) (events[e.ticket_id] ??= []).push(e);
+  } catch (e) {
+    error = e instanceof Error ? e.message : String(e);
+  }
+
+  if (error) {
+    return (
+      <div className="card p-6">
+        <h1 className="text-lg font-semibold">Database not reachable</h1>
+        <p className="mt-2 text-sm text-muted">
+          Set <code>DATABASE_URL</code> and run <code>db/schema.sql</code> then <code>db/seed.sql</code> in the Neon SQL editor.
+        </p>
+        <p className="mt-2 text-xs text-muted">{error}</p>
+      </div>
+    );
+  }
+
+  return (
+    <Home digest={digest} needs={needs} fixed={fixed} team={members}
+      past={past} admin={admin} events={events} nextRun={nextMondayRun()} />
+  );
+}

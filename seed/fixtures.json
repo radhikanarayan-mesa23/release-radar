@@ -1,0 +1,194 @@
+{
+ "_note": "SYNTHETIC test cases (fictional acme-* repos) for lib/rules.ts and the Gemini classifier. Never shown in a real digest. prev_tag = previous release, for semver bump.",
+ "cases": [
+  {
+   "id": "F01",
+   "repo": "acme-pay/pay-sdk",
+   "tag": "v4.2.1",
+   "prev_tag": "v4.2.0",
+   "title": "v4.2.1",
+   "body": "Fixes CVE-2026-31337: webhook signature verification could be bypassed with a crafted header. Upgrade immediately.",
+   "expect": {
+    "bump": "PATCH",
+    "flags": [
+     "SECURITY"
+    ],
+    "priority": "HIGH"
+   }
+  },
+  {
+   "id": "F02",
+   "repo": "acme-auth/jwt-lite",
+   "tag": "v9.0.0",
+   "prev_tag": "v8.5.3",
+   "title": "v9.0.0",
+   "body": "Drop support for Node 16. verify() now throws on expired tokens instead of returning null.",
+   "expect": {
+    "bump": "MAJOR",
+    "flags": [
+     "BREAKING"
+    ],
+    "priority": "HIGH"
+   }
+  },
+  {
+   "id": "F03",
+   "repo": "acme-bank/open-banking",
+   "tag": "2.14.0",
+   "prev_tag": "2.13.2",
+   "title": "2.14.0",
+   "body": "Add support for UPI AutoPay mandates. New `mandates.list()` method.",
+   "expect": {
+    "bump": "MINOR",
+    "flags": [],
+    "priority": "MEDIUM"
+   }
+  },
+  {
+   "id": "F04",
+   "repo": "acme-auth/session-kit",
+   "tag": "v3.1.4",
+   "prev_tag": "v3.1.3",
+   "title": "Patch release",
+   "body": "Fix typo in README. Bump dev dependencies.",
+   "expect": {
+    "bump": "PATCH",
+    "flags": [],
+    "priority": "LOW"
+   }
+  },
+  {
+   "id": "F05",
+   "repo": "acme-pay/checkout",
+   "tag": "v5.0.0",
+   "prev_tag": "v4.9.0",
+   "title": "v5.0.0",
+   "body": "BREAKING CHANGE: `createCharge` renamed to `createPayment`. Also patches a stored XSS in the hosted checkout page (GHSA-xxxx-yyyy-zzzz).",
+   "expect": {
+    "bump": "MAJOR",
+    "flags": [
+     "SECURITY",
+     "BREAKING"
+    ],
+    "priority": "HIGH"
+   }
+  },
+  {
+   "id": "F06",
+   "repo": "acme-http/fetchy",
+   "tag": "v1.7.2",
+   "prev_tag": "v1.7.1",
+   "title": "v1.7.2",
+   "body": "Prevent SSRF when following redirects to private IP ranges.",
+   "expect": {
+    "bump": "PATCH",
+    "flags": [
+     "SECURITY"
+    ],
+    "priority": "HIGH"
+   }
+  },
+  {
+   "id": "F07",
+   "repo": "acme-auth/oidc",
+   "tag": "v2.3.0-beta.1",
+   "prev_tag": "v2.2.0",
+   "title": "v2.3.0-beta.1",
+   "body": "Experimental PKCE helpers. Not for production.",
+   "expect": {
+    "bump": "MINOR",
+    "flags": [],
+    "prerelease": true,
+    "priority": "LOW"
+   }
+  },
+  {
+   "id": "F08",
+   "repo": "acme-bank/ledger",
+   "tag": "release-2026-10-06",
+   "prev_tag": "release-2026-09-29",
+   "title": "Weekly release",
+   "body": "Performance improvements to reconciliation jobs.",
+   "expect": {
+    "bump": "UNKNOWN",
+    "flags": [],
+    "priority": "LOW"
+   }
+  },
+  {
+   "id": "F09",
+   "repo": "acme-pay/pay-sdk",
+   "tag": "v4.3.0",
+   "prev_tag": "v4.2.1",
+   "title": "v4.3.0",
+   "body": "Deprecated `refunds.legacyCreate`; it will be removed in v5. Migration guide in docs.",
+   "expect": {
+    "bump": "MINOR",
+    "flags": [
+     "BREAKING"
+    ],
+    "_why": "migration guide mention -> BREAKING by rule (conservative)",
+    "priority": "HIGH"
+   }
+  },
+  {
+   "id": "F10",
+   "repo": "acme-auth/jwt-lite",
+   "tag": "v8.5.4",
+   "prev_tag": "v8.5.3",
+   "title": "v8.5.4",
+   "body": "Harden key parsing: reject keys shorter than 2048 bits to avoid weak signature acceptance.",
+   "expect": {
+    "bump": "PATCH",
+    "flags": [
+     "SECURITY"
+    ],
+    "_why": "no keyword match for the rules; Gemini must catch this. Tests the OR logic.",
+    "priority": "HIGH"
+   }
+  },
+  {
+   "id": "F11",
+   "repo": "acme-tools/workflow",
+   "tag": "v1.30.0",
+   "prev_tag": "v1.29.0",
+   "title": "v1.30.0",
+   "body": "New dashboard. 40 contributors this release.",
+   "expect": {
+    "bump": "MINOR",
+    "flags": [],
+    "priority": "MEDIUM"
+   }
+  },
+  {
+   "id": "F12",
+   "repo": "acme-http/fetchy",
+   "tag": "v2.0.0",
+   "prev_tag": "v1.7.2",
+   "title": "v2.0.0",
+   "body": "ESM only.",
+   "expect": {
+    "bump": "MAJOR",
+    "flags": [
+     "BREAKING"
+    ],
+    "_why": "major bump alone triggers BREAKING",
+    "priority": "HIGH"
+   }
+  },
+  {
+   "id": "F13",
+   "repo": "acme-db/db-client",
+   "tag": "v2.8.1",
+   "prev_tag": "v2.8.0",
+   "title": "v2.8.1",
+   "body": "chore(examples): bump next from 14.2.3 to 14.2.35 in /examples/realtime to fix RCE (CVE-2025-29927). Fix retry on timeout.",
+   "expect": {
+    "bump": "PATCH",
+    "flags": [],
+    "priority": "LOW",
+    "_why": "security fix is only in example code, not the shipped library -> must NOT be HIGH"
+   }
+  }
+ ]
+}
