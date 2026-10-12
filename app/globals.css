@@ -85,3 +85,19 @@ body { -webkit-font-smoothing: antialiased; }
   .lift { transition: none; }
   .shimmer { color: var(--color-fg); background: none; -webkit-text-fill-color: currentColor; }
 }
+
+/* spinner + a light sweep across a button while a long job runs */
+@keyframes spin  { to { transform: rotate(360deg) } }
+@keyframes sweep { from { transform: translateX(-100%) } to { transform: translateX(100%) } }
+
+.spin { animation: spin .8s linear infinite; transform-origin: 50% 50%; }
+.sweep::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+  animation: sweep 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin { animation: spin 1.6s linear infinite; }
+  .sweep::after { animation: none; background: none; }
+}

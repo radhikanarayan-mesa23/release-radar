@@ -30,7 +30,7 @@ async function buildContext(): Promise<string | null> {
 
   const line = (i: DigestPayload['items'][number]) =>
     `- ${i.repo} ${i.tag} [${i.priority}${i.flags.length ? ' ' + i.flags.join('+') : ''}] ${i.why}` +
-    (i.summary?.length ? ` :: ${i.summary.join(' ')}` : '');
+    (i.summary?.length ? ` :: ${i.summary[0]}` : '');
 
   const byP = (p0: string) => p.items.filter((i) => i.priority === p0);
 
@@ -41,7 +41,7 @@ async function buildContext(): Promise<string | null> {
     `HIGH:\n${byP('HIGH').map(line).join('\n') || '- none'}`,
     `MEDIUM:\n${byP('MEDIUM').map(line).join('\n') || '- none'}`,
     `NOT_SURE:\n${byP('NOT_SURE').map(line).join('\n') || '- none'}`,
-    `LOW (routine, names only): ${byP('LOW').map((i) => `${i.repo} ${i.tag}`).join(', ') || 'none'}`,
+    `LOW (routine, names only): ${byP('LOW').slice(0, 30).map((i) => `${i.repo} ${i.tag}`).join(', ') || 'none'}`,
     `EVALUATING: ${p.evaluating.map((e) => `${e.repo} — ${e.releases_90d} releases/90d, last ${e.days_since_last}d ago, ${e.stars} stars, ${e.cadence}`).join(' | ') || 'none'}`,
     `QUIET (shipped nothing): ${p.quiet.map((q) => q.repo).join(', ') || 'none'}`,
     `OPEN TICKETS:\n${tickets.map((t) => `- ${t.repo} ${t.tag} [${t.priority}] ${t.status}${t.assignee ? ` assigned to ${t.assignee}` : ' unassigned'}`).join('\n') || '- none'}`,

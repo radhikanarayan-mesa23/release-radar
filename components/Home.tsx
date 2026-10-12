@@ -9,6 +9,27 @@ import type { DigestPayload } from '@/lib/pipeline';
 import type { TicketRow } from '@/lib/queries';
 
 type Tab = 'needs' | 'fixed' | 'all' | 'evaluating' | 'quiet';
+type Sort = 'newest' | 'oldest' | 'high' | 'low';
+
+const SORTS: [Sort, string][] = [
+  ['high', 'Priority: high → low'],
+  ['low', 'Priority: low → high'],
+  ['newest', 'Date: newest first'],
+  ['oldest', 'Date: oldest first'],
+];
+const RANK: Record<string, number> = { HIGH: 0, MEDIUM: 1, NOT_SURE: 2, LOW: 3 };
+
+/** One comparator for tickets and digest items alike — both carry priority + published_at. */
+function sorter<T extends { priority: string; published_at?: string | null }>(mode: Sort) {
+  const date = (x: T) => new Date(x.published_at ?? 0).getTime();
+  return (a: T, b: T) => {
+    if (mode === 'newest') return date(b) - date(a);
+    if (mode === 'oldest') return date(a) - date(b);
+    const r = (RANK[a.priority] ?? 9) - (RANK[b.priority] ?? 9);
+    if (r !== 0) return mode === 'high' ? r : -r;
+    return date(b) - date(a); // within a priority, newest first
+  };
+}
 const PRIORITIES = ['HIGH', 'MEDIUM', 'LOW', 'NOT_SURE'] as const;
 
 const toCard = (t: TicketRow): CardItem => ({
@@ -34,9 +55,11 @@ export default function Home({
 }) {
   const [tab, setTab] = useState<Tab>('needs');
   const [filter, setFilter] = useState<string | null>(null);
+  const [sort, setSort] = useState<Sort>('high');
   const [days, setDays] = useState(7);
   const [emailMe, setEmailMe] = useState(true);
   const [msg, setMsg] = useState('');
+  const [stage, setStage] = useState('');
   const [pending, start] = useTransition();
 
   const anchorMs = digest ? new Date(digest.generated_at).getTime() : 0;
@@ -61,20 +84,30 @@ export default function Home({
     history: events[t.ticket_id] ?? [],
   });
 
-  const visibleNeeds = filter ? needs.filter((n) => n.priority === filter) : needs;
+  const visibleNeeds = (filter ? needs.filter((n) => n.priority === filter) : needs)
+    .slice().sort(sorter(sort));
+  const visibleFixed = fixed.slice().sort(sorter(sort));
   const topHigh = needs.filter((n) => n.priority === 'HIGH').slice(0, 3);
 
   const grouped = useMemo(() => {
     const src = filter ? items.filter((i) => i.priority === filter) : items;
     return PRIORITIES.map((p) => {
-      const rows = src.filter((i) => i.priority === p);
+      const rows = src.filter((i) => i.priority === p).slice().sort(sorter(sort));
       const byRepo = new Map<string, typeof rows>();
       rows.forEach((i) => byRepo.set(i.repo, [...(byRepo.get(i.repo) ?? []), i]));
       return { priority: p, repos: [...byRepo.entries()] };
     }).filter((g) => g.repos.length);
-  }, [items, filter]);
+  }, [items, filter, sort]);
 
   function post(url: string, body?: unknown, label = 'Working…') {
+    // A run takes ~40-160s, so narrate it instead of leaving a dead button.
+    const steps = url === '/api/run'
+      ? ['Reading your repositories…', 'Fetching releases from GitHub…', 'Applying security rules…',
+         'Asking Gemini to summarise…', 'Scoring priorities…', 'Saving the digest…']
+      : ['Sending…'];
+    let i = 0;
+    setStage(steps[0]);
+    const timer = setInterval(() => { i = Math.min(i + 1, steps.length - 1); setStage(steps[i]); }, 6000);
     start(async () => {
       setMsg(label);
       const res = await fetch(url, {
@@ -82,6 +115,7 @@ export default function Home({
         ...(body ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {}),
       });
       const j = await res.json().catch(() => ({}));
+      clearInterval(timer); setStage('');
       if (!res.ok) { setMsg(j.error ?? 'Failed — are you logged in as admin?'); return; }
       if (url === '/api/run') { setMsg(`Done — ${j.counts?.total ?? 0} releases. Refreshing…`); setTimeout(() => location.reload(), 1100); }
       else setMsg(`Digest emailed to ${j.to}`);
@@ -197,10 +231,22 @@ export default function Home({
                   {label} <span className="text-xs text-muted">{n}</span>
                 </button>
               ))}
-              {filter && (
-                <button onClick={() => setFilter(null)}
-                  className="ml-auto mr-2 text-xs text-accent underline">clear {priorityLabel(filter)} filter</button>
-              )}
+              <div className="ml-auto mb-2 flex items-center gap-2 pr-2">
+                {filter && (
+                  <button onClick={() => setFilter(null)}
+                    className="text-xs text-accent hover:underline">clear {priorityLabel(filter)}</button>
+                )}
+                {(tab === 'needs' || tab === 'fixed' || tab === 'all') && (
+                  <label className="flex items-center gap-1.5 text-xs text-muted">
+                    <span className="hidden sm:inline">Sort</span>
+                    <select value={sort} onChange={(e) => setSort(e.target.value as Sort)}
+                      aria-label="Sort releases"
+                      className="rounded-lg border border-[#4A4039] bg-ink0 px-2 py-1 text-xs text-fg focus:border-accent focus:outline-none">
+                      {SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                    </select>
+                  </label>
+                )}
+              </div>
             </div>
 
             <div className="space-y-3 p-3">
@@ -208,7 +254,7 @@ export default function Home({
                 <ReleaseCard key={t.ticket_id} item={toCard(t)} ticket={ticketOf(t)} team={team} admin={admin} />
               )) : <Empty>{needs.length ? 'Nothing matches that filter.' : 'Inbox zero — nothing open.'}</Empty>)}
 
-              {tab === 'fixed' && (fixed.length ? fixed.map((t) => (
+              {tab === 'fixed' && (visibleFixed.length ? visibleFixed.map((t) => (
                 <div key={t.ticket_id}>
                   <ReleaseCard item={toCard(t)} ticket={ticketOf(t)} team={team} admin={admin} />
                   <p className="px-4 pt-1 text-xs text-muted">
@@ -298,9 +344,16 @@ export default function Home({
                 </div>
                 <button onClick={() => post('/api/run', { days, email: emailMe }, 'Fetching releases and summarising…')}
                   disabled={pending}
-                  className="glow mt-3 w-full rounded-xl px-3 py-2.5 text-sm font-semibold text-ink0 disabled:cursor-wait disabled:opacity-70">
-                  {pending ? 'Working…' : 'Run now'}
+                  className="glow lift relative mt-3 w-full overflow-hidden rounded-xl px-3 py-2.5 text-sm font-semibold text-ink0 disabled:cursor-wait">
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    {pending && <Spinner />}
+                    {pending ? 'Running…' : 'Run now'}
+                  </span>
+                  {pending && <span className="sweep absolute inset-0 z-0" aria-hidden />}
                 </button>
+                {pending && stage && (
+                  <p className="fade mt-2 text-center text-xs text-accent" aria-live="polite">{stage}</p>
+                )}
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   <button onClick={() => post('/api/email', undefined, 'Sending…')} disabled={pending}
                     className="rounded-xl border border-[#4A4039] bg-ink0 px-3 py-2 text-xs hover:border-accent disabled:cursor-wait disabled:opacity-70">
@@ -496,6 +549,14 @@ function RepoGroup({ repo, rows }: { repo: string; rows: DigestPayload['items'] 
         </button>
       )}
     </div>
+  );
+}
+
+function Spinner() {
+  return (
+    <svg viewBox="0 0 24 24" className="spin h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <path d="M12 3a9 9 0 1 0 9 9" strokeLinecap="round" />
+    </svg>
   );
 }
 

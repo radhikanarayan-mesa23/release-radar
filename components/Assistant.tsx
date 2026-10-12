@@ -15,12 +15,16 @@ export default function Assistant({ need }: { need: number }) {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [q, setQ] = useState('');
   const [busy, setBusy] = useState(false);
+  const [stage, setStage] = useState('');
   const [err, setErr] = useState('');
   const endRef = useRef<HTMLDivElement>(null);
 
   async function ask(question: string) {
     if (!question.trim() || busy) return;
     setErr(''); setQ(''); setBusy(true);
+    const steps = ['Reading this week’s digest…', 'Checking your open tickets…', 'Writing an answer…'];
+    let i = 0; setStage(steps[0]);
+    const timer = setInterval(() => { i = Math.min(i + 1, steps.length - 1); setStage(steps[i]); }, 2200);
     const history = msgs.slice(-6);
     setMsgs((m) => [...m, { role: 'user', text: question }]);
     requestAnimationFrame(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }));
@@ -35,7 +39,7 @@ export default function Assistant({ need }: { need: number }) {
     } catch {
       setErr('Network error.');
     } finally {
-      setBusy(false);
+      clearInterval(timer); setStage(''); setBusy(false);
       requestAnimationFrame(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }));
     }
   }
@@ -109,8 +113,9 @@ export default function Assistant({ need }: { need: number }) {
 
         {busy && (
           <div className="flex justify-start">
-            <p className="typing rounded-2xl rounded-bl-sm border border-line bg-ink0 px-3 py-2 text-sm text-muted">
-              <span>●</span><span>●</span><span>●</span>
+            <p className="flex items-center gap-2 rounded-2xl rounded-bl-sm border border-line bg-ink0 px-3 py-2 text-sm text-muted">
+              <span className="typing"><span>●</span><span>●</span><span>●</span></span>
+              <span className="fade text-xs">{stage}</span>
             </p>
           </div>
         )}
