@@ -54,7 +54,7 @@ export async function alertNewSecurity(items: AlertItem[]): Promise<{ ok: boolea
   ).join('\n\n');
 
   const more = n > 8 ? `\n\n_${esc(`and ${n - 8} more`)}_` : '';
-  const footer = app ? `\n\n[Open the dashboard](${app})` : '';
+  const footer = app ? `\n\n[Open the dashboard](${app}/dashboard)` : '';
 
   return send(
     `*${esc(`${n} new security release${n > 1 ? 's' : ''}`)}*\n` +

@@ -1,79 +1,92 @@
-import Home from '@/components/Home';
-import { isAdmin } from '@/lib/auth';
-import { greetingIST, nextMondayRun } from '@/lib/schedule';
+import Link from 'next/link';
+import type { Metadata } from 'next';
+import BackgroundPaths from '@/components/BackgroundPaths';
 import { sql } from '@/lib/db';
-import { latestDigest, manifestDeps, pastDigests, team, ticketEvents, tickets, type TicketRow } from '@/lib/queries';
-import { matchRelease, type Match } from '@/lib/manifest';
-import { ruleConfig } from '@/app/api/rules/route';
-import { DEFAULT_BREAKING_TERMS, DEFAULT_IGNORE_TERMS, DEFAULT_SECURITY_TERMS } from '@/lib/rules';
-import type { RulesPayload } from '@/components/RulesTab';
 
+export const metadata: Metadata = {
+  title: { absolute: 'Release Radar' },
+  description: 'Security fixes and breaking changes first, every Monday 08:00 IST.',
+};
 export const dynamic = 'force-dynamic';
 
-export default async function Page() {
-  const admin = await isAdmin();
-  const events: Record<number, { at: string; by_name: string | null; action: string; detail: string | null }[]> = {};
-  let digest = null, needs: TicketRow[] = [], fixed: TicketRow[] = [],
-    members: { id: number; name: string }[] = [], past: Awaited<ReturnType<typeof pastDigests>> = [],
-    error: string | null = null;
-
-  let repoCount = 0, evaluatingCount = 0;
-  let matches: Record<number, Match> = {};
-  let manifestCount = 0;
-  const cfg = await ruleConfig();
-  const rules: RulesPayload = {
-    security_terms: cfg.security_terms ?? DEFAULT_SECURITY_TERMS,
-    breaking_terms: cfg.breaking_terms ?? DEFAULT_BREAKING_TERMS,
-    ignore_terms: cfg.ignore_terms ?? DEFAULT_IGNORE_TERMS,
-    customised: { security: !!cfg.security_terms, breaking: !!cfg.breaking_terms, ignore: !!cfg.ignore_terms },
-    defaults: {
-      security_terms: DEFAULT_SECURITY_TERMS,
-      breaking_terms: DEFAULT_BREAKING_TERMS,
-      ignore_terms: DEFAULT_IGNORE_TERMS,
-    },
-  };
+async function stats() {
   try {
-    [digest, needs, fixed, members, past] = await Promise.all([
-      latestDigest(), tickets(['open', 'in_progress']), tickets(['fixed', 'dismissed']),
-      team(), pastDigests(),
-    ]);
-    const rows = await ticketEvents([...needs, ...fixed].map((t) => t.ticket_id));
-    for (const e of rows) (events[e.ticket_id] ??= []).push(e);
-    const rc = (await sql`
-      select count(*) filter (where active)::int as tracked,
-             count(*) filter (where active and category = 'evaluating')::int as evaluating
-      from repos`) as { tracked: number; evaluating: number }[];
-    repoCount = rc[0].tracked; evaluatingCount = rc[0].evaluating;
+    const r = (await sql`
+      select
+        (select count(*) filter (where active)::int from repos)              as repos,
+        (select count(*)::int from releases)                                  as releases,
+        (select count(*)::int from releases where 'SECURITY' = any(flags))    as security,
+        (select count(*)::int from runs)                                      as runs`) as
+      { repos: number; releases: number; security: number; runs: number }[];
+    return r[0];
+  } catch { return null; }
+}
 
-    // "Is this actually in my codebase?" — compare each open item against the
-    // ranges in her package.json. Cheap: one query, then pure comparison.
-    const deps = await manifestDeps();
-    manifestCount = deps.size;
-    if (deps.size) {
-      matches = Object.fromEntries([...needs, ...fixed].map((t) => [
-        t.ticket_id,
-        matchRelease({ owner: t.owner, name: t.repo.split('/')[1], tag: t.tag, package_name: t.package_name }, deps),
-      ]));
-    }
-  } catch (e) {
-    error = e instanceof Error ? e.message : String(e);
-  }
 
-  if (error) {
-    return (
-      <div className="card p-6">
-        <h1 className="text-lg font-semibold">Database not reachable</h1>
-        <p className="mt-2 text-sm text-muted">
-          Set <code>DATABASE_URL</code> and run <code>db/schema.sql</code> then <code>db/seed.sql</code> in the Neon SQL editor.
-        </p>
-        <p className="mt-2 text-xs text-muted">{error}</p>
-      </div>
-    );
-  }
-
+export default async function About() {
+  const s = await stats();
   return (
-    <Home digest={digest} needs={needs} fixed={fixed} team={members} past={past} admin={admin}
-      events={events} nextRun={nextMondayRun()} repoCount={repoCount} evaluatingCount={evaluatingCount}
-      greeting={greetingIST()} matches={matches} manifestCount={manifestCount} rules={rules} />
+    <div className="mx-auto max-w-4xl">
+      <BackgroundPaths
+        title="Welcome to your repo check"
+        subtitle="Two dozen repositories, read every Monday at 08:00 IST. Security fixes and breaking changes first, everything routine folded away."
+        cta="Open the dashboard"
+        href="/dashboard"
+      />
+
+      <section className="rise">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">Why it exists</p>
+        <h1 className="mt-3 text-3xl font-semibold leading-[1.12] tracking-tight sm:text-5xl">
+          A security patch once sat unread
+          <span className="block bg-gradient-to-r from-accent to-accent2 bg-clip-text text-transparent">
+            for eleven days.
+          </span>
+        </h1>
+        <p className="mt-5 max-w-2xl text-base text-muted sm:text-lg">
+          Keerthi ships payments and auth at a fintech startup. She watches two dozen public repos,
+          and GitHub Watch tells her about everything equally — every comment, every label, every
+          routine bump. So the one release that actually mattered drowned.
+        </p>
+        <p className="mt-3 max-w-2xl text-base text-muted sm:text-lg">
+          Release Radar reads <span className="text-fg">only releases</span>, puts security fixes and
+          breaking changes at the top, and is designed to be finished in five minutes.
+        </p>
+
+        <div className="mt-7 flex flex-wrap gap-3">
+          <Link href="/dashboard" className="glow lift rounded-xl px-5 py-3 text-sm font-semibold text-ink0">
+            Open the dashboard →
+          </Link>
+          <Link href="/quality" className="lift rounded-xl border border-[#4A4039] px-5 py-3 text-sm hover:border-accent">
+            See how accurate it is
+          </Link>
+        </div>
+      </section>
+
+      {s && (
+        <section className="stagger mt-10 grid grid-cols-2 gap-3 md:grid-cols-4">
+          {[
+            [s.repos, 'repositories watched'],
+            [s.releases, 'releases triaged'],
+            [s.security, 'security-flagged'],
+            [s.runs, 'checks run'],
+          ].map(([v, l]) => (
+            <div key={String(l)} className="card p-4">
+              <div className="text-2xl font-semibold text-accent">{v as number}</div>
+              <div className="mt-0.5 text-xs text-muted">{l as string}</div>
+            </div>
+          ))}
+        </section>
+      )}
+
+      <section className="card mt-12 flex flex-wrap items-center justify-between gap-4 p-6">
+        <div>
+          <h2 className="text-lg font-semibold">See this week</h2>
+          <p className="mt-1 text-sm text-muted">Real data, updated by a scheduled run every Monday at 08:00 IST.</p>
+        </div>
+        <Link href="/dashboard" className="glow lift shrink-0 rounded-xl px-5 py-3 text-sm font-semibold text-ink0">
+          Open the dashboard →
+        </Link>
+      </section>
+    </div>
   );
 }

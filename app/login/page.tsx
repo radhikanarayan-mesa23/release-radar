@@ -23,13 +23,13 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
       httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production',
       path: '/', maxAge: 60 * 60 * 24 * 30,
     });
-    redirect('/');
+    redirect('/dashboard');
   }
 
   async function logout() {
     'use server';
     (await cookies()).delete(ADMIN_COOKIE);
-    redirect('/');
+    redirect('/dashboard');
   }
 
   return (

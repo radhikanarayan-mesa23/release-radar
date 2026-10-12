@@ -18,7 +18,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
           <button onClick={reset} className="glow rounded-xl px-3 py-2 text-sm font-semibold text-ink0">
             Try again
           </button>
-          <Link href="/" className="rounded-xl border border-[#4A4039] px-3 py-2 text-sm hover:border-accent">
+          <Link href="/dashboard" className="rounded-xl border border-[#4A4039] px-3 py-2 text-sm hover:border-accent">
             Back to the dashboard
           </Link>
           <Link href="/status" className="rounded-xl border border-[#4A4039] px-3 py-2 text-sm hover:border-accent">

@@ -60,7 +60,7 @@ export function shell(title: string, inner: string): string {
     <h1 style="font-size:20px;margin:0 0 16px">${esc(title)}</h1>
     ${inner}
     <p style="margin-top:24px;font-size:13px">
-      ${url ? `<a href="${esc(url)}" style="color:#111827">Open dashboard</a> · <a href="${esc(url)}/report" style="color:#111827">Download report</a>` : ''}
+      ${url ? `<a href="${esc(url)}/dashboard" style="color:#111827">Open dashboard</a> · <a href="${esc(url)}/report" style="color:#111827">Download report</a>` : ''}
     </p>
   </div></div>`;
 }

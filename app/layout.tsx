@@ -55,7 +55,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <div className="min-w-0 flex-1">
           <header className="no-print sticky top-0 z-30 border-b border-line bg-ink1/80 backdrop-blur">
             <div className="flex items-center gap-3 px-4 py-3 sm:px-6">
-              <Link href="/" className="flex items-baseline gap-2">
+              <Link href="/" className="flex items-baseline gap-2" aria-label="Release Radar home">
                 <span className="bg-gradient-to-r from-accent to-accent2 bg-clip-text text-base font-semibold text-transparent">
                   Release&nbsp;Radar
                 </span>
