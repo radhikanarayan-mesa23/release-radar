@@ -43,7 +43,13 @@ Go to **/repos**.
 
 Back on the dashboard, point at the sidebar: **Run now · Email me this digest · Export CSV**.
 
-### 1:45 — Trust and automation (15s)
+### 1:40 — Repository Buddy (15s)
+Click **Repository Buddy**, bottom-right. Tap *"What should I do first today?"*
+> "And she can just ask. This is Gemini Flash again, but grounded only on the digest
+> already on screen — ask it about a repo she doesn't track and it says so instead of
+> inventing a CVE."
+
+### 1:55 — Trust and automation (15s)
 Go to **/quality**.
 > "13 fixtures graded live. Rules alone get 12 of 13. Rules plus Gemini get 13 — zero security
 > fixes missed, zero false alarms. F13 fixes a CVE inside /examples, so it must *not* be high,

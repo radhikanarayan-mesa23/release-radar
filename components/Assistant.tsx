@@ -42,12 +42,20 @@ export default function Assistant({ need }: { need: number }) {
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} aria-label="Ask the release assistant"
-        className="glow lift no-print fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full px-4 py-3 text-sm font-semibold text-ink0 shadow-xl">
-        <Spark /> Ask about this week
-        {need > 0 && (
-          <span className="rounded-full bg-ink0/25 px-2 py-[1px] text-xs">{need}</span>
-        )}
+      <button onClick={() => setOpen(true)} aria-label="Chat with Repository Buddy"
+        className="glow lift no-print fixed bottom-5 right-5 z-40 flex items-center gap-2.5 rounded-full py-2.5 pl-2.5 pr-4 text-left text-ink0 shadow-xl">
+        <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink0/20">
+          <Bot />
+          {need > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-ink0 px-1 text-[10px] font-bold text-accent2">
+              {need}
+            </span>
+          )}
+        </span>
+        <span className="leading-tight">
+          <span className="block text-sm font-bold">Repository Buddy</span>
+          <span className="block text-[11px] font-medium opacity-80">Ask me about this week</span>
+        </span>
       </button>
     );
   }
@@ -55,10 +63,13 @@ export default function Assistant({ need }: { need: number }) {
   return (
     <div className="no-print fixed bottom-5 right-5 z-40 flex h-[520px] w-[min(92vw,380px)] flex-col rounded-2xl border border-line bg-ink2 shadow-2xl pop">
       <header className="flex items-center gap-2 border-b border-line px-4 py-3">
-        <span className="glow flex h-7 w-7 items-center justify-center rounded-lg text-ink0"><Spark /></span>
+        <span className="glow flex h-8 w-8 items-center justify-center rounded-xl text-ink0"><Bot /></span>
         <div className="min-w-0">
-          <p className="text-sm font-semibold leading-tight">Release assistant</p>
-          <p className="truncate text-[11px] text-muted">Gemini Flash · reads only your current digest</p>
+          <p className="text-sm font-semibold leading-tight">Repository Buddy</p>
+          <p className="truncate text-[11px] text-muted">
+            <span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-accent align-middle" />
+            Gemini Flash · reads only your current digest
+          </p>
         </div>
         <button onClick={() => setOpen(false)} aria-label="Close assistant"
           className="ml-auto rounded-lg px-2 py-1 text-muted hover:bg-ink3 hover:text-fg">✕</button>
@@ -67,9 +78,12 @@ export default function Assistant({ need }: { need: number }) {
       <div className="scroll-y flex-1 space-y-3 p-3">
         {!msgs.length && (
           <div className="fade">
-            <p className="text-sm text-muted">
-              Ask me anything about this week&apos;s releases. I only read the digest already on
-              this dashboard, so I can&apos;t invent a version or a CVE.
+            <p className="text-sm">
+              <span className="font-medium">Hi Keerthi — I&apos;m Repository Buddy.</span>{' '}
+              <span className="text-muted">
+                Ask me anything about this week&apos;s releases across the repos you track. I only read
+                the digest already on this dashboard, so I can&apos;t invent a version or a CVE.
+              </span>
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {SUGGESTED.map((s) => (
@@ -107,7 +121,7 @@ export default function Assistant({ need }: { need: number }) {
       <form onSubmit={(e) => { e.preventDefault(); ask(q); }}
         className="flex items-center gap-2 border-t border-line p-3">
         <input value={q} onChange={(e) => setQ(e.target.value)} disabled={busy}
-          placeholder="Ask about this week…" aria-label="Your question"
+          placeholder="Ask Repository Buddy…" aria-label="Your question"
           className="min-w-0 flex-1 rounded-xl border border-[#4A4039] bg-ink0 px-3 py-2 text-sm text-fg placeholder:text-muted focus:border-accent focus:outline-none disabled:opacity-70" />
         <button type="submit" disabled={busy || !q.trim()}
           className="glow rounded-xl px-3 py-2 text-sm font-semibold text-ink0 disabled:opacity-40">→</button>
@@ -116,10 +130,15 @@ export default function Assistant({ need }: { need: number }) {
   );
 }
 
-function Spark() {
+/** Little robot head, so the control reads as "chatbot" at a glance. */
+function Bot() {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-      <path d="M12 2.5 13.7 9l6.3 1.7-6.3 1.7L12 19l-1.7-6.6L4 10.7 10.3 9 12 2.5Z" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+      strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]">
+      <rect x="4" y="8" width="16" height="11" rx="3.5" />
+      <path d="M12 4.5v3.5M8.5 19v1.5M15.5 19v1.5M2.5 12.5v2M21.5 12.5v2" />
+      <circle cx="9.3" cy="13" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="14.7" cy="13" r="1.1" fill="currentColor" stroke="none" />
     </svg>
   );
 }
