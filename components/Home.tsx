@@ -117,6 +117,32 @@ export default function Home({
     }).filter((g) => g.repos.length);
   }, [items, filter, sort]);
 
+  /**
+   * Take her to the actual release, not to a filtered list she is already looking
+   * at. Clears every filter that could hide the target first, then scrolls to the
+   * card and flashes it so the jump is visible.
+   */
+  function goToTicket(ticketId: number) {
+    setTab('needs'); setFilter(null); setOwner('all'); setOnlyMine(false);
+    // two frames: one for React to commit the tab switch, one for layout
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const el = document.getElementById(`ticket-${ticketId}`);
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('flash');
+      setTimeout(() => el.classList.remove('flash'), 1900);
+    }));
+  }
+
+  /** Insights name a priority, not one release — filter, then show the list. */
+  function goToPriority(priority: string) {
+    const p = priority === 'LOW' ? null : priority;
+    setFilter(p); setTab(p ? 'needs' : 'all'); setOwner('all'); setOnlyMine(false);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document.getElementById('release-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }));
+  }
+
   function post(url: string, body?: unknown, label = 'Working…') {
     // A run takes ~40-160s, so narrate it instead of leaving a dead button.
     const steps = url === '/api/run'
@@ -224,7 +250,7 @@ export default function Home({
                   {digest.briefing.slice(0, 5).map((b, i) => (
                     <li key={i}>
                       <button
-                        onClick={() => { setFilter(b.priority === 'LOW' ? null : b.priority); setTab(b.priority === 'LOW' ? 'all' : 'needs'); }}
+                        onClick={() => goToPriority(b.priority)}
                         className="group flex w-full items-start gap-2.5 rounded-xl border border-transparent
                           bg-ink0/40 px-2.5 py-2 text-left text-sm
                           transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]
@@ -246,7 +272,7 @@ export default function Home({
                       {topHigh.map((t) => (
                         <FlowButton key={t.ticket_id} size="sm" text={t.repo} sub={t.tag}
                           dot={PRIORITY_HEX[t.priority]}
-                          onClick={() => { setFilter('HIGH'); setTab('needs'); }} />
+                          onClick={() => goToTicket(t.ticket_id)} />
                       ))}
                     </div>
                   </div>
@@ -255,58 +281,77 @@ export default function Home({
             )}
           </section>
 
-          <section className="card rise" style={{ animationDelay: '.16s' }}>
-            <div className="no-print flex flex-wrap items-center gap-1 border-b border-line px-2 pt-2">
-              {TABS.map(([k, label, n]) => (
-                <button key={k} onClick={() => setTab(k)}
-                  className={`-mb-px rounded-t-lg border-b-2 px-3 py-2 text-sm transition
-                    ${tab === k ? 'border-accent font-medium text-fg' : 'border-transparent text-muted hover:text-fg'}`}>
-                  {label} <span className="text-xs text-muted">{n}</span>
-                </button>
-              ))}
-              <div className="ml-auto mb-2 flex items-center gap-2 pr-2">
-                {filter && (
-                  <button onClick={() => setFilter(null)}
-                    className="text-xs text-accent hover:underline">clear {priorityLabel(filter)}</button>
-                )}
-                {tab === 'needs' && manifestCount > 0 && (
-                  <button onClick={() => setOnlyMine(!onlyMine)}
-                    className={`rounded-lg border px-2 py-1 text-xs transition ${
-                      onlyMine ? 'border-accent bg-accent/15 text-accent' : 'border-line text-muted hover:text-fg'}`}>
-                    {onlyMine ? '✓ ' : ''}Only what affects me
+          <section id="release-list" className="rise scroll-mt-20" style={{ animationDelay: '.16s' }}>
+            {/* folder tabs: the active one is the same surface as the panel and
+                overlaps its top border by 1px, so the two read as one sheet */}
+            <div className="no-print scroll-x flex items-end gap-1 overflow-x-auto pl-3">
+              {TABS.map(([k, label, n]) => {
+                const on = tab === k;
+                return (
+                  <button key={k} onClick={() => setTab(k)} aria-current={on ? 'page' : undefined}
+                    className={`relative -mb-px shrink-0 whitespace-nowrap rounded-t-xl px-4 py-2.5 text-sm transition-colors
+                      ${on
+                        ? 'z-10 border border-line border-b-ink2 bg-ink2 font-medium text-fg'
+                        : 'border border-transparent text-muted hover:bg-ink1 hover:text-fg'}`}>
+                    {label}
+                    <span className={`ml-1.5 rounded-full px-1.5 py-[1px] text-[11px] tabular-nums
+                      ${on ? 'bg-accent/15 text-accent' : 'bg-ink3 text-muted'}`}>{n}</span>
                   </button>
-                )}
-                {tab === 'needs' && (
-                  <div className="flex items-center gap-1 rounded-lg border border-line bg-ink0 p-0.5 text-xs">
-                    {([
-                      ['all', `All ${needs.length}`],
-                      ['unassigned', `Unassigned ${unassigned}`],
-                      ['assigned', `Assigned ${assignedCount}`],
-                    ] as const).map(([v, l]) => (
-                      <button key={v} onClick={() => setOwner(v)}
-                        className={`rounded-md px-2 py-1 transition ${owner === v ? 'bg-ink3 text-fg' : 'text-muted hover:text-fg'}`}>
-                        {l}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {(tab === 'needs' || tab === 'fixed' || tab === 'all') && (
-                  <label className="flex items-center gap-1.5 text-xs text-muted">
+                );
+              })}
+            </div>
+
+            <div className="card rounded-tl-none">
+              {/* controls get their own full-width row instead of crowding the tabs */}
+              {(tab === 'needs' || tab === 'fixed' || tab === 'all') && (
+                <div className="no-print flex flex-wrap items-center gap-2 border-b border-line px-3 py-2.5">
+                  {tab === 'needs' && (
+                    <div className="flex items-center gap-1 rounded-lg border border-line bg-ink0 p-0.5 text-xs">
+                      {([
+                        ['all', `All ${needs.length}`],
+                        ['unassigned', `Unassigned ${unassigned}`],
+                        ['assigned', `Assigned ${assignedCount}`],
+                      ] as const).map(([v, l]) => (
+                        <button key={v} onClick={() => setOwner(v)}
+                          className={`rounded-md px-2.5 py-1 transition ${owner === v ? 'bg-ink3 text-fg' : 'text-muted hover:text-fg'}`}>
+                          {l}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {tab === 'needs' && manifestCount > 0 && (
+                    <button onClick={() => setOnlyMine(!onlyMine)}
+                      className={`rounded-lg border px-2.5 py-1.5 text-xs transition ${
+                        onlyMine ? 'border-accent bg-accent/15 text-accent' : 'border-line text-muted hover:text-fg'}`}>
+                      {onlyMine ? '✓ ' : ''}Only what affects me
+                    </button>
+                  )}
+
+                  {filter && (
+                    <button onClick={() => setFilter(null)}
+                      className="rounded-lg border border-accent/40 bg-accent/10 px-2.5 py-1.5 text-xs text-accent hover:bg-accent/20">
+                      {priorityLabel(filter)} ✕
+                    </button>
+                  )}
+
+                  <label className="ml-auto flex items-center gap-1.5 text-xs text-muted">
                     <span className="hidden sm:inline">Sort</span>
                     <select value={sort} onChange={(e) => setSort(e.target.value as Sort)}
                       aria-label="Sort releases"
-                      className="rounded-lg border border-[#4A4039] bg-ink0 px-2 py-1 text-xs text-fg focus:border-accent focus:outline-none">
+                      className="rounded-lg border border-[#4A4039] bg-ink0 px-2 py-1.5 text-xs text-fg focus:border-accent focus:outline-none">
                       {SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                     </select>
                   </label>
-                )}
-              </div>
-            </div>
+                </div>
+              )}
 
             <div className="space-y-3 p-3">
               {tab === 'needs' && (visibleNeeds.length ? visibleNeeds.map((t) => (
-                <ReleaseCard key={t.ticket_id} item={toCard(t)} ticket={ticketOf(t)} team={team}
-                  admin={admin} match={matches[t.ticket_id]} />
+                <div key={t.ticket_id} id={`ticket-${t.ticket_id}`} className="scroll-mt-24 rounded-2xl">
+                  <ReleaseCard item={toCard(t)} ticket={ticketOf(t)} team={team}
+                    admin={admin} match={matches[t.ticket_id]} />
+                </div>
               )) : <Empty>
                 {!needs.length ? 'Inbox zero — nothing open.'
                   : owner === 'unassigned' ? 'Nothing unassigned — every open item has an owner.'
@@ -385,6 +430,7 @@ export default function Home({
                   {digest.errors.map((e) => <li key={e.repo}>{e.repo}: {e.error}</li>)}
                 </ul>
               )}
+              </div>
             </div>
           </section>
         </div>
@@ -416,14 +462,9 @@ export default function Home({
                   <p className="fade mt-2 text-center text-xs text-accent" aria-live="polite">{stage}</p>
                 )}
                 <div className="mt-2 grid grid-cols-2 gap-2">
-                  <button onClick={() => post('/api/email', undefined, 'Sending…')} disabled={pending}
-                    className="rounded-xl border border-[#4A4039] bg-ink0 px-3 py-2 text-xs hover:border-accent disabled:cursor-wait disabled:opacity-70">
-                    Email me this digest
-                  </button>
-                  <a href="/api/report?days=7&format=csv"
-                    className="rounded-xl border border-[#4A4039] bg-ink0 px-3 py-2 text-center text-xs hover:border-accent">
-                    Export CSV
-                  </a>
+                  <FlowButton size="sm" text="Email digest" pendingText="Sending…" pending={pending}
+                    onClick={() => post('/api/email', undefined, 'Sending…')} />
+                  <FlowButton size="sm" text="Export CSV" href="/api/report?days=7&format=csv" />
                 </div>
               </>
             ) : (
@@ -461,10 +502,10 @@ export default function Home({
               <h2 className="text-sm font-semibold">Download a report</h2>
               <Link href="/report" className="text-xs text-accent hover:underline">All →</Link>
             </div>
-            <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+            <div className="mt-3 flex flex-wrap gap-2">
               {[1, 7, 30].map((d) => (
-                <a key={d} href={`/api/report?days=${d}&format=html`} target="_blank" rel="noreferrer"
-                  className="rounded-lg border border-line bg-ink3 px-2 py-2 text-center hover:bg-ink2">{d}d</a>
+                <FlowButton key={d} size="sm" text={`${d}d`} newTab
+                  href={`/api/report?days=${d}&format=html`} />
               ))}
             </div>
             <p className="mt-2 text-xs text-muted">HTML prints to PDF · CSV opens in Excel</p>

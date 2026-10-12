@@ -118,3 +118,18 @@ body { -webkit-font-smoothing: antialiased; }
   .flow { animation: none; stroke-dasharray: none; }
   .letter { animation: none; }
 }
+
+/* a jumped-to card announces itself, then settles */
+@keyframes flash {
+  0%   { box-shadow: 0 0 0 0 rgba(249,115,22,0); }
+  12%  { box-shadow: 0 0 0 3px rgba(249,115,22,.55); }
+  100% { box-shadow: 0 0 0 0 rgba(249,115,22,0); }
+}
+.flash { animation: flash 1.9s cubic-bezier(.2,.7,.3,1) 1; }
+@media (prefers-reduced-motion: reduce) {
+  .flash { animation: none; box-shadow: 0 0 0 2px rgba(249,115,22,.5); }
+}
+
+/* tab strip scrolls rather than wrapping, with no visible scrollbar */
+.scroll-x { scrollbar-width: none; -ms-overflow-style: none; }
+.scroll-x::-webkit-scrollbar { display: none; }
