@@ -60,6 +60,7 @@ bell confirms the Monday run already happened before she opened the tab.
 | `GEMINI_API_KEY` / `GEMINI_MODEL` | Gemini Flash (exam rule: Gemini only) |
 | `RESEND_API_KEY` / `EMAIL_FROM` / `DIGEST_TO` | digest, alert and assignment mail |
 | `ADMIN_PASSCODE` | unlocks runs, repo edits, assignment, reports |
+| `DEMO_UNLOCK` | `true` pre-fills the passcode on `/login` so a reviewer unlocks in one click; unset it for a normal passcode form |
 | `CRON_SECRET` | Bearer token Vercel Cron sends to `/api/cron/*` |
 | `APP_URL` | links inside emails |
 | `COST_GEMINI_INR_PER_1K_*` | ₹ shown on `/status` and in each digest |

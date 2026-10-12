@@ -61,7 +61,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 ) : (
                   <Link href="/login"
                     className="rounded-xl border border-line bg-ink2 px-3 py-[7px] text-xs text-muted hover:text-fg">
-                    Log in
+                    Unlock admin
                   </Link>
                 )}
               </div>
