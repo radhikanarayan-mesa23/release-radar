@@ -2,11 +2,11 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
   *{box-sizing:border-box;margin:0;padding:0}
-  body{background:#121110;color:#E7E2DC;font:14px/1.45 Inter,system-ui,sans-serif;padding:40px 44px;width:2240px}
+  body{background:#121110;color:#E7E2DC;font:14px/1.45 Inter,system-ui,sans-serif;padding:40px 44px;width:2360px}
   h1{font-size:34px;font-weight:700;letter-spacing:-.6px}
   .sub{color:#9A918A;font-size:15px;margin-top:8px}
   .sub b{color:#F97316;font-weight:600}
-  table{width:100%;border-collapse:separate;border-spacing:0;margin-top:26px}
+  table{width:2150px;border-collapse:separate;border-spacing:0;margin-top:26px}
   th{background:#1B1715;color:#E7E2DC;font-size:14px;font-weight:600;padding:13px 16px;text-align:center;border:1px solid #332D28}
   th:first-child{text-align:left}
   td{border:1px solid #2A2522;vertical-align:top;padding:11px;height:96px}
@@ -27,7 +27,7 @@
   .rd{border-color:#FF6B5A}.rd .tag{border-color:#FF6B5A;color:#FF6B5A}
   .new{display:inline-block;margin-left:6px;font-size:9.5px;font-weight:700;letter-spacing:.4px;
        color:#121110;background:linear-gradient(135deg,#F97316,#FBBF24);border-radius:5px;padding:1.5px 5px;vertical-align:1px}
-  .foot{margin-top:24px;display:flex;gap:40px;font-size:12.5px;color:#9A918A;flex-wrap:wrap}
+  .foot{margin-top:24px;max-width:2150px;display:flex;gap:40px;font-size:12.5px;color:#9A918A;flex-wrap:wrap}
   .foot b{color:#E7E2DC;font-weight:600}
   code{background:#2A2522;border-radius:4px;padding:1px 5px;font-size:11.5px;color:#FBBF24}
   #flow{position:absolute;top:0;left:0;pointer-events:none;z-index:5}
@@ -134,72 +134,110 @@
 </div>
 
 <svg id="flow"><defs>
-  <marker id="hO" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto">
-    <path d="M0,0 L7,3 L0,6 z" fill="#F97316"/></marker>
-  <marker id="hB" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto">
-    <path d="M0,0 L7,3 L0,6 z" fill="#5E9BE8"/></marker>
-  <marker id="hG" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto">
-    <path d="M0,0 L7,3 L0,6 z" fill="#3FB984"/></marker>
+  <marker id="hO" markerWidth="10" markerHeight="10" refX="8" refY="3.2" orient="auto">
+    <path d="M0,0 L7.5,3.2 L0,6.4 z" fill="#F97316"/></marker>
+  <marker id="hB" markerWidth="10" markerHeight="10" refX="8" refY="3.2" orient="auto">
+    <path d="M0,0 L7.5,3.2 L0,6.4 z" fill="#5E9BE8"/></marker>
+  <marker id="hG" markerWidth="10" markerHeight="10" refX="8" refY="3.2" orient="auto">
+    <path d="M0,0 L7.5,3.2 L0,6.4 z" fill="#3FB984"/></marker>
 </defs></svg>
 
 <script>
 (function () {
-  const svg = document.getElementById('flow');
-  const W = document.documentElement.scrollWidth, H = document.documentElement.scrollHeight;
+  var svg = document.getElementById('flow');
+  var W = document.documentElement.scrollWidth, H = document.documentElement.scrollHeight;
   svg.setAttribute('width', W); svg.setAttribute('height', H);
   svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
 
-  const node = {};
+  var node = {};
   document.querySelectorAll('.n').forEach(function (el) {
     node[el.querySelector('.tag').textContent.trim()] = el;
   });
   function box(id) {
-    const r = node[id].getBoundingClientRect();
-    return { l:r.left, r:r.right, t:r.top, b:r.bottom, cx:r.left+r.width/2, cy:r.top+r.height/2 };
+    var r = node[id].getBoundingClientRect();
+    return { l:r.left, r:r.right, t:r.top, b:r.bottom, w:r.width, h:r.height };
   }
+  // a point on a node edge, `f` is the fraction along that edge
+  function edge(b, side, f) {
+    if (side === 'L') return { x:b.l, y:b.t + b.h*f };
+    if (side === 'R') return { x:b.r, y:b.t + b.h*f };
+    if (side === 'T') return { x:b.l + b.w*f, y:b.t };
+    return { x:b.l + b.w*f, y:b.b };
+  }
+  function out(p, side, d) {
+    if (side === 'L') return { x:p.x-d, y:p.y };
+    if (side === 'R') return { x:p.x+d, y:p.y };
+    if (side === 'T') return { x:p.x, y:p.y-d };
+    return { x:p.x, y:p.y+d };
+  }
+  var horiz = function (s) { return s === 'L' || s === 'R'; };
 
-  const SPINE = '#F97316', FEED = '#5E9BE8', OUT = '#3FB984';
-  const arrows = [
-    ['1','2',SPINE,'B','L'],   // the cron wakes the run and loads the repo list
-    ['2','3',SPINE,'B','T'],   // that list drives the GitHub fetch
-    ['3','6',SPINE,'R','L'],   // releases go into the rules
-    ['6','7',SPINE,'B','T'],   // rules, then codebase impact
-    ['7','8',SPINE,'R','L'],   // then one batched Gemini call
-    ['8','10',SPINE,'R','B'],  // merged result is stored
-    ['10','13',SPINE,'B','T'], // and delivered
-    ['0','2',FEED,'B','T'],    // Keerthi's configuration
-    ['5','6',FEED,'R','T'],    // memory: previous tags and existing tickets
-    ['4','8',FEED,'B','L'],    // guards gate the AI call
-    ['10','11',OUT,'T','B'],   // the dashboard reads what was saved
-    ['13','12',OUT,'T','B'],   // the teammate gets the assignment
-    ['10','9',OUT,'B','R']     // the assistant is grounded on the stored digest
+  var tableR = document.querySelector('table').getBoundingClientRect().right;
+
+  var SPINE = '#F97316', FEED = '#5E9BE8', OUT = '#3FB984';
+  // from, to, colour, [exit side, fraction], [entry side, fraction], lane coordinate
+  var A = [
+    ['1','2', SPINE, ['R',0.5], ['T',0.62], null],
+    ['2','3', SPINE, ['B',0.5], ['T',0.5 ], null],
+    ['3','6', SPINE, ['R',0.5], ['L',0.5 ], 826 ],
+    ['6','7', SPINE, ['B',0.5], ['T',0.5 ], null],
+    ['7','8', SPINE, ['R',0.5], ['T',0.35], null],
+    ['8','10',SPINE, ['R',0.5], ['B',0.22], null],
+    ['10','13',SPINE,['B',0.5], ['T',0.5 ], null],
+    ['0','2', FEED,  ['R',0.5], ['T',0.26], null],
+    ['5','6', FEED,  ['R',0.5], ['T',0.78], null],
+    ['4','8', FEED,  ['B',0.5], ['L',0.5 ], null],
+    ['10','9', OUT,  ['B',0.82],['R',0.5 ], null],
+    ['10','11',OUT,  ['L',0.5], ['L',0.5 ], 'lane1'],
+    ['13','12',OUT,  ['R',0.5], ['R',0.5 ], 'lane2']
   ];
 
-  function pt(b, side) {
-    if (side === 'R') return { x:b.r, y:b.cy };
-    if (side === 'L') return { x:b.l, y:b.cy };
-    if (side === 'T') return { x:b.cx, y:b.t };
-    return { x:b.cx, y:b.b };
+  function pts(a) {
+    var bA = box(a[0]), bZ = box(a[1]);
+    var sa = a[3][0], sz = a[4][0];
+    var p = out(edge(bA, sa, a[3][1]), sa, 16);
+    var q = out(edge(bZ, sz, a[4][1]), sz, 16);
+    var lane = a[5];
+    if (lane === 'lane1') lane = Math.min(bA.l, bZ.l) - 62;   // left of the Output cards
+    if (lane === 'lane2') lane = tableR + 52;                 // the right-hand gutter
+
+    if (horiz(sa) && !horiz(sz)) return [p, { x:q.x, y:p.y }, q];
+    if (!horiz(sa) && horiz(sz)) return [p, { x:p.x, y:q.y }, q];
+    if (horiz(sa) && horiz(sz)) {
+      var lx = lane != null ? lane : (p.x + q.x) / 2;
+      return [p, { x:lx, y:p.y }, { x:lx, y:q.y }, q];
+    }
+    var ly = lane != null ? lane : (p.y + q.y) / 2;
+    return [p, { x:p.x, y:ly }, { x:q.x, y:ly }, q];
   }
 
-  arrows.forEach(function (a) {
-    const from = a[0], to = a[1], colour = a[2], sa = a[3], sz = a[4];
-    if (!node[from] || !node[to]) return;
-    const p = pt(box(from), sa), q = pt(box(to), sz);
-    const pad = 10;
-    const p2 = { x: p.x + (sa==='R'?pad:sa==='L'?-pad:0), y: p.y + (sa==='B'?pad:sa==='T'?-pad:0) };
-    const q2 = { x: q.x + (sz==='R'?pad:sz==='L'?-pad:0), y: q.y + (sz==='B'?pad:sz==='T'?-pad:0) };
-    const k = 0.42 * Math.hypot(q2.x-p2.x, q2.y-p2.y);
-    const c1 = { x: p2.x + (sa==='R'?k:sa==='L'?-k:0), y: p2.y + (sa==='B'?k:sa==='T'?-k:0) };
-    const c2 = { x: q2.x + (sz==='R'?k:sz==='L'?-k:0), y: q2.y + (sz==='B'?k:sz==='T'?-k:0) };
-    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-    path.setAttribute('d', 'M'+p2.x+','+p2.y+' C'+c1.x+','+c1.y+' '+c2.x+','+c2.y+' '+q2.x+','+q2.y);
-    path.setAttribute('fill','none');
-    path.setAttribute('stroke', colour);
-    path.setAttribute('stroke-width', colour===SPINE ? 2.8 : 2);
-    path.setAttribute('stroke-opacity', colour===SPINE ? 0.95 : 0.75);
-    if (colour !== SPINE) path.setAttribute('stroke-dasharray','8 6');
-    path.setAttribute('marker-end','url(#'+(colour===SPINE?'hO':colour===FEED?'hB':'hG')+')');
+  // right angles, softened just enough to read as drawn rather than jagged
+  function d(ps, r) {
+    var s = 'M' + ps[0].x + ',' + ps[0].y;
+    for (var i = 1; i < ps.length - 1; i++) {
+      var a = ps[i-1], b = ps[i], c = ps[i+1];
+      var l1 = Math.hypot(b.x-a.x, b.y-a.y), l2 = Math.hypot(c.x-b.x, c.y-b.y);
+      var r1 = Math.min(r, l1/2), r2 = Math.min(r, l2/2);
+      var u1 = { x:(a.x-b.x)/(l1||1), y:(a.y-b.y)/(l1||1) };
+      var u2 = { x:(c.x-b.x)/(l2||1), y:(c.y-b.y)/(l2||1) };
+      s += ' L' + (b.x+u1.x*r1) + ',' + (b.y+u1.y*r1) +
+           ' Q' + b.x + ',' + b.y + ' ' + (b.x+u2.x*r2) + ',' + (b.y+u2.y*r2);
+    }
+    var e = ps[ps.length-1];
+    return s + ' L' + e.x + ',' + e.y;
+  }
+
+  A.forEach(function (a) {
+    if (!node[a[0]] || !node[a[1]]) return;
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', d(pts(a), 12));
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', a[2]);
+    path.setAttribute('stroke-width', a[2] === SPINE ? 2.8 : 2);
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('stroke-opacity', a[2] === SPINE ? 0.95 : 0.78);
+    if (a[2] !== SPINE) path.setAttribute('stroke-dasharray', '9 7');
+    path.setAttribute('marker-end', 'url(#' + (a[2]===SPINE?'hO':a[2]===FEED?'hB':'hG') + ')');
     svg.appendChild(path);
   });
 })();
