@@ -7,6 +7,7 @@ import {
 import { applyRules, previousTag, priorityFromRules, type Bump, type Category, type Priority } from './rules';
 import { classify, costInr, selectForAi, type GeminiInput } from './gemini';
 import { briefingBlock, card, esc, sendTo, shell, type MailItem } from './email';
+import { alertNewSecurity, telegramConfigured } from './telegram';
 
 export type RunKind = 'weekly' | 'daily-security' | 'manual';
 
@@ -193,6 +194,7 @@ export async function runDigest(opts: { days: number; kind: RunKind; email?: boo
 
   // --- merge, priority, upsert, tickets ---
   const items: DigestItem[] = [];
+  const firstSeen = new Set<number>(); // release ids inserted by THIS run
   for (const s of staged) {
     const g = byId.get(s.key);
     const ai_flags: string[] = [];
@@ -229,8 +231,11 @@ export async function runDigest(opts: { days: number; kind: RunKind; email?: boo
         bump = excluded.bump, rule_flags = excluded.rule_flags, ai_flags = excluded.ai_flags,
         flags = excluded.flags, priority = excluded.priority, confidence = excluded.confidence,
         summary = excluded.summary, why = excluded.why, action = excluded.action
-      returning id`) as { id: number }[];
+      returning id, (xmax = 0) as inserted`) as { id: number; inserted: boolean }[];
     const release_id = rows[0].id;
+    // xmax = 0 means this row was INSERTed, not updated — i.e. a release we have
+    // never seen before. That is what makes an alert "new" rather than a repeat.
+    const isNew = rows[0].inserted;
 
     // Tickets are keyed by release so triage survives every later run.
     if (priority === 'HIGH' || priority === 'MEDIUM' || priority === 'NOT_SURE') {
@@ -239,6 +244,7 @@ export async function runDigest(opts: { days: number; kind: RunKind; email?: boo
         on conflict (release_id) do update set priority = excluded.priority, updated_at = now()`;
     }
 
+    if (isNew) firstSeen.add(release_id);
     items.push({
       release_id, repo_id: s.c.repo.id, repo: `${s.c.repo.owner}/${s.c.repo.name}`,
       owner: s.c.repo.owner, category: s.c.repo.category, avatar: avatarUrl(s.c.repo.owner),
@@ -289,13 +295,30 @@ export async function runDigest(opts: { days: number; kind: RunKind; email?: boo
       ${JSON.stringify(briefing)}::jsonb, ${JSON.stringify(counts)}::jsonb, ${JSON.stringify(payload)}::jsonb)
     returning id`) as { id: number }[];
 
+  // Only releases this run saw for the first time. Spec §6.7: the daily run
+  // emails "only if there is a NEW HIGH security item" — without this it would
+  // re-alert the same CVE every morning until it aged out of the window.
+  const newHighSecurity = visible.filter(
+    (i) => i.priority === 'HIGH' && i.flags.includes('SECURITY') && i.release_id !== null
+      && firstSeen.has(i.release_id),
+  );
+
   // --- email ---
   let emailed = false;
   if (kind === 'daily-security') {
-    const newHigh = visible.filter((i) => i.priority === 'HIGH' && i.flags.includes('SECURITY'));
-    if (newHigh.length) emailed = (await sendAlert(newHigh)).ok;
+    if (newHighSecurity.length) emailed = (await sendAlert(newHighSecurity)).ok;
   } else if (wantEmail) {
     emailed = (await sendDigest(payload)).ok;
+  }
+
+  // --- Telegram: the interrupt channel, on every run kind ---
+  let telegramed = false;
+  if (newHighSecurity.length && telegramConfigured()) {
+    const r = await alertNewSecurity(newHighSecurity.map((i) => ({
+      repo: i.repo, tag: i.tag, url: i.url, why: i.why, flags: i.flags,
+    })));
+    telegramed = r.ok;
+    if (!r.ok) console.warn('[telegram]', r.error);
   }
 
   await sql`
@@ -305,7 +328,11 @@ export async function runDigest(opts: { days: number; kind: RunKind; email?: boo
       emailed = ${emailed}, errors = ${JSON.stringify(errors)}::jsonb
     where id = ${runId}`;
 
-  return { run_id: runId, digest_id: digestRows[0].id, payload, emailed, ai_ok: ai.ok, ai_error: ai.error };
+  return {
+    run_id: runId, digest_id: digestRows[0].id, payload, emailed,
+    telegramed, new_security: newHighSecurity.length,
+    ai_ok: ai.ok, ai_error: ai.error,
+  };
 }
 
 function fallbackBriefing(items: DigestItem[]) {

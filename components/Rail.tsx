@@ -21,6 +21,7 @@ const NAV = [
   { href: '/report', label: 'Reports', hint: 'Download HTML or CSV', icon: 'M12 3v12m0 0-4-4m4 4 4-4M4 19h16' },
   { href: '/quality', label: 'Quality', hint: 'How accurate the flags are', icon: 'M20 6 9 17l-5-5' },
   { href: '/status', label: 'Status', hint: 'Runs, cost and errors', icon: 'M3 12h4l3 8 4-16 3 8h4' },
+  { href: '/about', label: 'What it does', hint: 'The problem and the approach', icon: 'M12 16v-5M12 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0' },
 ];
 
 export default function Rail() {

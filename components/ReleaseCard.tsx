@@ -89,6 +89,9 @@ export default function ReleaseCard({
             </a>
             <Chip label={item.category === 'evaluating' ? 'evaluating' : 'dependency'} tone="muted" />
             <span className="text-xs text-muted">{day(item.published_at)}</span>
+            {t?.assignee
+              ? <Chip label={`→ ${t.assignee}`} tone="accent" />
+              : t && <Chip label="unassigned" tone="muted" />}
             <span className="ml-auto flex flex-wrap items-center gap-1">
               {chips.map((c) => <Chip key={c} label={c} />)}
               <Chip label={priorityLabel(item.priority)} tone={item.priority} />

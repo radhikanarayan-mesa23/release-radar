@@ -56,6 +56,7 @@ export default function Home({
   const [tab, setTab] = useState<Tab>('needs');
   const [filter, setFilter] = useState<string | null>(null);
   const [sort, setSort] = useState<Sort>('high');
+  const [owner, setOwner] = useState<'all' | 'unassigned' | 'assigned'>('all');
   const [days, setDays] = useState(7);
   const [emailMe, setEmailMe] = useState(true);
   const [msg, setMsg] = useState('');
@@ -84,8 +85,14 @@ export default function Home({
     history: events[t.ticket_id] ?? [],
   });
 
-  const visibleNeeds = (filter ? needs.filter((n) => n.priority === filter) : needs)
+  const byOwner = (rows: TicketRow[]) =>
+    owner === 'all' ? rows
+      : owner === 'unassigned' ? rows.filter((n) => !n.assignee_id)
+      : rows.filter((n) => !!n.assignee_id);
+
+  const visibleNeeds = byOwner(filter ? needs.filter((n) => n.priority === filter) : needs)
     .slice().sort(sorter(sort));
+  const assignedCount = needs.filter((n) => !!n.assignee_id).length;
   const visibleFixed = fixed.slice().sort(sorter(sort));
   const topHigh = needs.filter((n) => n.priority === 'HIGH').slice(0, 3);
 
@@ -236,6 +243,20 @@ export default function Home({
                   <button onClick={() => setFilter(null)}
                     className="text-xs text-accent hover:underline">clear {priorityLabel(filter)}</button>
                 )}
+                {tab === 'needs' && (
+                  <div className="flex items-center gap-1 rounded-lg border border-line bg-ink0 p-0.5 text-xs">
+                    {([
+                      ['all', `All ${needs.length}`],
+                      ['unassigned', `Unassigned ${unassigned}`],
+                      ['assigned', `Assigned ${assignedCount}`],
+                    ] as const).map(([v, l]) => (
+                      <button key={v} onClick={() => setOwner(v)}
+                        className={`rounded-md px-2 py-1 transition ${owner === v ? 'bg-ink3 text-fg' : 'text-muted hover:text-fg'}`}>
+                        {l}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 {(tab === 'needs' || tab === 'fixed' || tab === 'all') && (
                   <label className="flex items-center gap-1.5 text-xs text-muted">
                     <span className="hidden sm:inline">Sort</span>
@@ -252,7 +273,12 @@ export default function Home({
             <div className="space-y-3 p-3">
               {tab === 'needs' && (visibleNeeds.length ? visibleNeeds.map((t) => (
                 <ReleaseCard key={t.ticket_id} item={toCard(t)} ticket={ticketOf(t)} team={team} admin={admin} />
-              )) : <Empty>{needs.length ? 'Nothing matches that filter.' : 'Inbox zero — nothing open.'}</Empty>)}
+              )) : <Empty>
+                {!needs.length ? 'Inbox zero — nothing open.'
+                  : owner === 'unassigned' ? 'Nothing unassigned — every open item has an owner.'
+                  : owner === 'assigned' ? 'Nothing assigned yet. Pick a teammate on a card to hand it over.'
+                  : 'Nothing matches that filter.'}
+              </Empty>)}
 
               {tab === 'fixed' && (visibleFixed.length ? visibleFixed.map((t) => (
                 <div key={t.ticket_id}>

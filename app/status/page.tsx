@@ -8,6 +8,7 @@ export const dynamic = 'force-dynamic';
 const ENV_VARS = [
   'DATABASE_URL', 'GITHUB_TOKEN', 'GEMINI_API_KEY', 'GEMINI_MODEL',
   'RESEND_API_KEY', 'EMAIL_FROM', 'DIGEST_TO', 'ADMIN_PASSCODE', 'CRON_SECRET', 'APP_URL',
+  'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID',
 ];
 
 function Meter({ label, used, cap }: { label: string; used: number; cap: number }) {
