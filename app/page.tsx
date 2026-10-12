@@ -52,14 +52,6 @@ export default async function About() {
           breaking changes at the top, and is designed to be finished in five minutes.
         </p>
 
-        <div className="mt-7 flex flex-wrap gap-3">
-          <Link href="/dashboard" className="glow lift rounded-xl px-5 py-3 text-sm font-semibold text-ink0">
-            Open the dashboard →
-          </Link>
-          <Link href="/quality" className="lift rounded-xl border border-[#4A4039] px-5 py-3 text-sm hover:border-accent">
-            See how accurate it is
-          </Link>
-        </div>
       </section>
 
       {s && (
@@ -78,15 +70,6 @@ export default async function About() {
         </section>
       )}
 
-      <section className="card card-settle mt-12 flex flex-wrap items-center justify-between gap-4 p-6">
-        <div>
-          <h2 className="text-lg font-semibold">See this week</h2>
-          <p className="mt-1 text-sm text-muted">Real data, updated by a scheduled run every Monday at 08:00 IST.</p>
-        </div>
-        <Link href="/dashboard" className="glow lift shrink-0 rounded-xl px-5 py-3 text-sm font-semibold text-ink0">
-          Open the dashboard →
-        </Link>
-      </section>
     </div>
   );
 }
