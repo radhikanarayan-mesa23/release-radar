@@ -71,27 +71,34 @@ export default function Rail() {
       <nav aria-label="Primary"
         className={`no-print hidden shrink-0 flex-col gap-1 border-r border-line bg-ink1 p-2 transition-[width] duration-200
           lg:sticky lg:top-0 lg:flex lg:h-dvh ${open ? 'lg:w-[232px]' : 'lg:w-[60px]'}`}>
-        <div className={`flex items-center gap-2 px-1 pb-2 pt-1 ${open ? '' : 'justify-center'}`}>
+        <div className={`flex items-center gap-2 px-1 pb-2 pt-1 ${open ? '' : 'flex-col'}`}>
           <Link href="/" aria-label="Release Radar home"
             className="glow flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-ink0">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="h-[18px] w-[18px]">
               <circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" strokeLinecap="round" />
             </svg>
           </Link>
-          {open && <span className="truncate text-sm font-semibold">Release Radar</span>}
+          {open && <span className="min-w-0 flex-1 truncate text-sm font-semibold">Release Radar</span>}
+
+          {/* Always visible, right at the top — the control is the discovery. */}
+          <button onClick={toggle} aria-expanded={open}
+            aria-label={open ? 'Collapse the menu' : 'Expand the menu'}
+            title={open ? 'Collapse the menu' : 'Expand the menu'}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line bg-ink2 text-muted transition hover:border-accent hover:text-accent">
+            <span className={`transition-transform duration-200 ${open ? '' : 'rotate-180'}`}>
+              {I('m15 6-6 6 6 6')}
+            </span>
+          </button>
         </div>
 
         <div className="h-px w-full bg-line" />
         <div className="mt-1 space-y-1">{NAV.map((n) => <Item key={n.href} n={n} />)}</div>
 
-        <button onClick={toggle} aria-expanded={open}
-          aria-label={open ? 'Collapse navigation' : 'Expand navigation'}
-          className="mt-auto flex items-center gap-3 rounded-xl px-[11px] py-2.5 text-muted transition hover:bg-ink3 hover:text-fg">
-          <span className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>
-            {I('m9 6 6 6-6 6')}
-          </span>
-          {open && <span className="text-sm">Collapse</span>}
-        </button>
+        {!open && (
+          <p className="mt-auto px-1 pb-1 text-center text-[10px] leading-tight text-muted">
+            Menu
+          </p>
+        )}
       </nav>
     </>
   );
