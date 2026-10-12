@@ -43,3 +43,6 @@ next-env.d.ts
 # local env
 .env
 .env*.local
+
+# rendered email previews (local only)
+email-preview/

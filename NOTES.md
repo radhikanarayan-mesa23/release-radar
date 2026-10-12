@@ -19,6 +19,8 @@
     failed on first use.
 - SECURITY regex checked against real notes: hits on fastify/axios are true positives (GHSA link,
   "🔒 Security Fixes" section). Left exactly as the brief specifies.
+- Email templates rendered to `email-preview/` (gitignored) — digest, assignment, alert all good.
+- Static cross-check: every table and column used in SQL exists in `db/schema.sql`.
 
 ## Next
 - Run `db/schema.sql` then `db/seed.sql` in the Neon SQL editor
