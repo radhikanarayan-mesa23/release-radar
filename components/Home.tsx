@@ -323,17 +323,22 @@ export default function Home({
           </section>
 
           <section className="card p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <h2 className="text-sm font-semibold">Repositories watched</h2>
-              <Link href="/repos" className="text-xs text-accent hover:underline">Manage →</Link>
+              <Link href="/repos" className="shrink-0 text-xs text-accent hover:underline">Manage →</Link>
             </div>
+            <p className="mt-1 text-xs text-muted">
+              See exactly which repositories are being checked each run, pause or remove any of them,
+              and add more — no code changes, no redeploy.
+            </p>
             <div className="mt-3 flex items-baseline gap-4">
               <div><div className="text-2xl font-semibold">{repoCount}</div><div className="text-xs text-muted">tracked</div></div>
               <div><div className="text-2xl font-semibold">{evaluatingCount}</div><div className="text-xs text-muted">evaluating</div></div>
             </div>
             <Link href="/repos"
-              className="mt-3 block rounded-xl border border-dashed border-line px-3 py-2 text-center text-xs text-muted hover:border-accent hover:text-accent">
-              + Add repositories (paste many links at once)
+              className="lift mt-3 block rounded-xl border border-dashed border-[#4A4039] px-3 py-2.5 text-center text-xs text-muted hover:border-accent hover:text-accent">
+              + Add repositories
+              <span className="mt-0.5 block text-[11px] opacity-80">paste several GitHub links at once</span>
             </Link>
           </section>
 
