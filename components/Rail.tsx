@@ -27,7 +27,9 @@ export default function Rail() {
   const path = usePathname();
   const stored = useSyncExternalStore(subscribe, read, () => null);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const open = stored === '1';
+  // Default EXPANDED: a first-time visitor should never have to discover a
+  // control to read the navigation. '0' means they chose to collapse it.
+  const open = stored !== '0';
 
   const toggle = useCallback(() => {
     try { localStorage.setItem(KEY, open ? '0' : '1'); } catch { /* private window */ }
@@ -40,7 +42,8 @@ export default function Rail() {
       <Link href={n.href} aria-current={active ? 'page' : undefined} onClick={() => setMobileOpen(false)}
         title={open ? undefined : n.label}
         className={`flex items-center gap-3 rounded-xl px-[11px] py-2.5 transition
-          ${active ? 'glow text-ink0' : 'text-muted hover:bg-ink3 hover:text-fg'}`}>
+          ${open ? '' : 'justify-center'}
+          ${active ? 'glow text-ink0' : 'text-fg/70 hover:bg-ink3 hover:text-fg'}`}>
         {I(n.icon)}
         {open && (
           <span className="min-w-0 leading-tight">
@@ -70,7 +73,7 @@ export default function Rail() {
       {/* desktop: collapsible panel, never a hover tooltip */}
       <nav aria-label="Primary"
         className={`no-print hidden shrink-0 flex-col gap-1 border-r border-line bg-ink1 p-2 transition-[width] duration-200
-          lg:sticky lg:top-0 lg:flex lg:h-dvh ${open ? 'lg:w-[232px]' : 'lg:w-[60px]'}`}>
+          lg:sticky lg:top-0 lg:flex lg:h-dvh ${open ? 'lg:w-[236px]' : 'lg:w-[76px]'}`}>
         <div className={`flex items-center gap-2 px-1 pb-2 pt-1 ${open ? '' : 'flex-col'}`}>
           <Link href="/" aria-label="Release Radar home"
             className="glow flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-ink0">
@@ -84,21 +87,18 @@ export default function Rail() {
           <button onClick={toggle} aria-expanded={open}
             aria-label={open ? 'Collapse the menu' : 'Expand the menu'}
             title={open ? 'Collapse the menu' : 'Expand the menu'}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line bg-ink2 text-muted transition hover:border-accent hover:text-accent">
+            className="flex h-9 shrink-0 items-center justify-center gap-1 rounded-xl border border-[#4A4039] bg-ink2 px-2 text-muted transition hover:border-accent hover:bg-ink3 hover:text-accent">
             <span className={`transition-transform duration-200 ${open ? '' : 'rotate-180'}`}>
               {I('m15 6-6 6 6 6')}
             </span>
+            {!open && <span className="text-[10px] font-semibold uppercase tracking-wide">Menu</span>}
           </button>
         </div>
 
         <div className="h-px w-full bg-line" />
         <div className="mt-1 space-y-1">{NAV.map((n) => <Item key={n.href} n={n} />)}</div>
 
-        {!open && (
-          <p className="mt-auto px-1 pb-1 text-center text-[10px] leading-tight text-muted">
-            Menu
-          </p>
-        )}
+
       </nav>
     </>
   );
