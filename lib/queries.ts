@@ -8,7 +8,7 @@ export interface TicketRow {
   release_id: number; tag: string; title: string | null; url: string | null;
   published_at: string | null; flags: string[]; bump: string | null;
   prerelease: boolean; summary: string[] | null; why: string | null; confidence: number | null;
-  repo: string; owner: string; category: string;
+  repo: string; owner: string; category: string; package_name?: string | null;
 }
 export interface TeamRow { id: number; name: string; email: string; role: string | null }
 export interface RunRow {
@@ -39,7 +39,7 @@ export async function tickets(statuses: string[]): Promise<TicketRow[]> {
            t.updated_at, t.fixed_at, m.name as assignee,
            r.id as release_id, r.tag, r.title, r.url, r.published_at, r.flags, r.bump,
            r.prerelease, r.summary, r.why, r.confidence,
-           (p.owner || '/' || p.name) as repo, p.owner, p.category
+           (p.owner || '/' || p.name) as repo, p.owner, p.category, p.package_name
     from tickets t
     join releases r on r.id = t.release_id
     join repos p on p.id = r.repo_id
@@ -47,6 +47,14 @@ export async function tickets(statuses: string[]): Promise<TicketRow[]> {
     where t.status = any(${statuses as unknown as string}::text[])
     order by case t.priority when 'HIGH' then 0 when 'MEDIUM' then 1 when 'NOT_SURE' then 2 else 3 end,
              r.published_at desc nulls last`) as TicketRow[];
+}
+
+export async function manifestDeps(): Promise<Map<string, { name: string; range: string; dev: boolean }>> {
+  try {
+    const rows = (await sql`select name, range, dev from manifest_deps`) as
+      { name: string; range: string; dev: boolean }[];
+    return new Map(rows.map((r) => [r.name, r]));
+  } catch { return new Map(); }
 }
 
 export async function team(): Promise<TeamRow[]> {

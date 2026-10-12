@@ -9,8 +9,11 @@ export interface RepoRow {
 export interface Member { id: number; name: string; email: string; role: string | null }
 
 export default function ReposManager({
-  repos, team, admin, errors,
-}: { repos: RepoRow[]; team: Member[]; admin: boolean; errors: Record<string, string> }) {
+  repos, team, admin, errors, manifestCount, manifestUpdated,
+}: {
+  repos: RepoRow[]; team: Member[]; admin: boolean; errors: Record<string, string>;
+  manifestCount: number; manifestUpdated: string | null;
+}) {
   const [text, setText] = useState('');
   const [category, setCategory] = useState<'dependency' | 'evaluating'>('dependency');
   const [why, setWhy] = useState('');
@@ -118,8 +121,73 @@ export default function ReposManager({
         </section>
       ))}
 
+      <ManifestPanel admin={admin} count={manifestCount} updated={manifestUpdated} />
       <TeamPanel team={team} admin={admin} />
     </div>
+  );
+}
+
+/** "Is this actually in my codebase?" — paste package.json, ranges only. */
+function ManifestPanel({ admin, count, updated }: { admin: boolean; count: number; updated: string | null }) {
+  const [text, setText] = useState('');
+  const [msg, setMsg] = useState('');
+  const [pending, start] = useTransition();
+
+  function save() {
+    start(async () => {
+      setMsg('Reading…');
+      const res = await fetch('/api/manifest', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) { setMsg(j.error ?? 'Failed'); return; }
+      setMsg(`Stored ${j.count} packages (${j.dependencies} dependencies, ${j.devDependencies} dev). Reloading…`);
+      setTimeout(() => location.reload(), 1100);
+    });
+  }
+
+  return (
+    <section className="card p-4">
+      <h2 className="text-sm font-semibold">Your package.json</h2>
+      <p className="mt-1 text-xs text-muted">
+        Paste it once and every flagged release says whether it <b className="text-high">affects you</b> —
+        the version you are on, and how far behind. Only names and semver ranges are stored:
+        no lockfile, no source code.
+      </p>
+
+      {count > 0 ? (
+        <p className="mt-3 rounded-xl border border-line bg-ink0 px-3 py-2 text-sm">
+          <span className="font-semibold text-accent">{count}</span> packages stored
+          {updated && <span className="text-muted"> · updated {new Date(updated).toLocaleDateString('en-GB')}</span>}
+          {admin && (
+            <button
+              onClick={() => start(async () => {
+                if (!confirm('Remove the stored dependency list?')) return;
+                await fetch('/api/manifest', { method: 'DELETE' });
+                location.reload();
+              })}
+              className="ml-2 text-xs text-muted underline hover:text-high">remove</button>
+          )}
+        </p>
+      ) : (
+        <p className="mt-3 text-xs text-muted">Nothing stored yet — every release is shown as informational.</p>
+      )}
+
+      {admin && (
+        <>
+          <textarea value={text} onChange={(e) => setText(e.target.value)} rows={4}
+            placeholder={'{\n  "dependencies": { "axios": "^1.18.2", "express": "~4.22.0" }\n}'}
+            className="mt-3 w-full rounded-xl border border-[#4A4039] bg-ink0 p-2 font-mono text-xs text-fg placeholder:text-muted focus:border-accent focus:outline-none" />
+          <div className="mt-2 flex items-center gap-2">
+            <button onClick={save} disabled={pending || !text.trim()}
+              className="glow rounded-xl px-3 py-1.5 text-sm font-semibold text-ink0 disabled:opacity-40">
+              {pending ? 'Working…' : count > 0 ? 'Replace list' : 'Store my dependencies'}
+            </button>
+            {msg && <span className="text-xs">{msg}</span>}
+          </div>
+        </>
+      )}
+    </section>
   );
 }
 

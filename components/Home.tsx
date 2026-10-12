@@ -7,6 +7,7 @@ import CountUp from './CountUp';
 import Assistant from './Assistant';
 import type { DigestPayload } from '@/lib/pipeline';
 import type { TicketRow } from '@/lib/queries';
+import type { Match } from '@/lib/manifest';
 
 type Tab = 'needs' | 'fixed' | 'all' | 'evaluating' | 'quiet';
 type Sort = 'newest' | 'oldest' | 'high' | 'low';
@@ -46,17 +47,21 @@ export interface PastRow {
 
 export default function Home({
   digest, needs, fixed, team, past, admin, events, nextRun, repoCount, evaluatingCount, greeting,
+  matches, manifestCount,
 }: {
   digest: DigestPayload | null; needs: TicketRow[]; fixed: TicketRow[]; team: TeamOption[];
   past: PastRow[]; admin: boolean;
   events: Record<number, { at: string; by_name: string | null; action: string; detail: string | null }[]>;
   nextRun: string; repoCount: number; evaluatingCount: number;
   greeting: { hello: string; when: string };
+  matches: Record<number, Match>;
+  manifestCount: number;
 }) {
   const [tab, setTab] = useState<Tab>('needs');
   const [filter, setFilter] = useState<string | null>(null);
   const [sort, setSort] = useState<Sort>('high');
   const [owner, setOwner] = useState<'all' | 'unassigned' | 'assigned'>('all');
+  const [onlyMine, setOnlyMine] = useState(false);
   const [days, setDays] = useState(7);
   const [emailMe, setEmailMe] = useState(true);
   const [msg, setMsg] = useState('');
@@ -89,10 +94,13 @@ export default function Home({
     owner === 'all' ? rows
       : owner === 'unassigned' ? rows.filter((n) => !n.assignee_id)
       : rows.filter((n) => !!n.assignee_id);
+  const byImpact = (rows: TicketRow[]) =>
+    onlyMine ? rows.filter((n) => matches[n.ticket_id]?.kind === 'affects') : rows;
 
-  const visibleNeeds = byOwner(filter ? needs.filter((n) => n.priority === filter) : needs)
+  const visibleNeeds = byImpact(byOwner(filter ? needs.filter((n) => n.priority === filter) : needs))
     .slice().sort(sorter(sort));
   const assignedCount = needs.filter((n) => !!n.assignee_id).length;
+  const affectsCount = needs.filter((n) => matches[n.ticket_id]?.kind === 'affects').length;
   const visibleFixed = fixed.slice().sort(sorter(sort));
   const topHigh = needs.filter((n) => n.priority === 'HIGH').slice(0, 3);
 
@@ -165,8 +173,14 @@ export default function Home({
             hint={p === 'HIGH' ? 'open · security / breaking' : p === 'MEDIUM' ? 'open · plan upgrade' : p === 'LOW' ? 'routine, no ticket' : 'open · low confidence'}
             onClick={() => { setFilter(filter === p ? null : p); setTab(p === 'LOW' ? 'all' : 'needs'); }} />
         ))}
-        <Tile label="Quiet repos" value={counts.quiet} hint={`of ${repoCount} tracked`}
-          onClick={() => { setFilter(null); setTab('quiet'); }} active={tab === 'quiet'} />
+        {manifestCount > 0 ? (
+          <Tile label="Affects you" value={affectsCount} accent
+            hint={`of ${manifestCount} deps you ship`} active={onlyMine}
+            onClick={() => { setOnlyMine(!onlyMine); setTab('needs'); }} />
+        ) : (
+          <Tile label="Quiet repos" value={counts.quiet} hint={`of ${repoCount} tracked`}
+            onClick={() => { setFilter(null); setTab('quiet'); }} active={tab === 'quiet'} />
+        )}
       </section>
 
       <div className="grid gap-5 xl:grid-cols-3">
@@ -243,6 +257,13 @@ export default function Home({
                   <button onClick={() => setFilter(null)}
                     className="text-xs text-accent hover:underline">clear {priorityLabel(filter)}</button>
                 )}
+                {tab === 'needs' && manifestCount > 0 && (
+                  <button onClick={() => setOnlyMine(!onlyMine)}
+                    className={`rounded-lg border px-2 py-1 text-xs transition ${
+                      onlyMine ? 'border-accent bg-accent/15 text-accent' : 'border-line text-muted hover:text-fg'}`}>
+                    {onlyMine ? '✓ ' : ''}Only what affects me
+                  </button>
+                )}
                 {tab === 'needs' && (
                   <div className="flex items-center gap-1 rounded-lg border border-line bg-ink0 p-0.5 text-xs">
                     {([
@@ -272,17 +293,20 @@ export default function Home({
 
             <div className="space-y-3 p-3">
               {tab === 'needs' && (visibleNeeds.length ? visibleNeeds.map((t) => (
-                <ReleaseCard key={t.ticket_id} item={toCard(t)} ticket={ticketOf(t)} team={team} admin={admin} />
+                <ReleaseCard key={t.ticket_id} item={toCard(t)} ticket={ticketOf(t)} team={team}
+                  admin={admin} match={matches[t.ticket_id]} />
               )) : <Empty>
                 {!needs.length ? 'Inbox zero — nothing open.'
                   : owner === 'unassigned' ? 'Nothing unassigned — every open item has an owner.'
+                  : onlyMine ? 'Nothing open affects the versions in your package.json.'
                   : owner === 'assigned' ? 'Nothing assigned yet. Pick a teammate on a card to hand it over.'
                   : 'Nothing matches that filter.'}
               </Empty>)}
 
               {tab === 'fixed' && (visibleFixed.length ? visibleFixed.map((t) => (
                 <div key={t.ticket_id}>
-                  <ReleaseCard item={toCard(t)} ticket={ticketOf(t)} team={team} admin={admin} />
+                  <ReleaseCard item={toCard(t)} ticket={ticketOf(t)} team={team} admin={admin}
+                    match={matches[t.ticket_id]} />
                   <div className="flex flex-wrap items-center gap-2 px-4 pt-1.5 text-xs text-muted">
                     <span>
                       {t.status === 'fixed' ? 'Fixed' : 'Dismissed'} by {t.updated_by ?? 'admin'}

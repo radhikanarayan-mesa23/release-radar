@@ -2,7 +2,8 @@ import Home from '@/components/Home';
 import { isAdmin } from '@/lib/auth';
 import { greetingIST, nextMondayRun } from '@/lib/schedule';
 import { sql } from '@/lib/db';
-import { latestDigest, pastDigests, team, ticketEvents, tickets, type TicketRow } from '@/lib/queries';
+import { latestDigest, manifestDeps, pastDigests, team, ticketEvents, tickets, type TicketRow } from '@/lib/queries';
+import { matchRelease, type Match } from '@/lib/manifest';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,6 +15,8 @@ export default async function Page() {
     error: string | null = null;
 
   let repoCount = 0, evaluatingCount = 0;
+  let matches: Record<number, Match> = {};
+  let manifestCount = 0;
   try {
     [digest, needs, fixed, members, past] = await Promise.all([
       latestDigest(), tickets(['open', 'in_progress']), tickets(['fixed', 'dismissed']),
@@ -26,6 +29,17 @@ export default async function Page() {
              count(*) filter (where active and category = 'evaluating')::int as evaluating
       from repos`) as { tracked: number; evaluating: number }[];
     repoCount = rc[0].tracked; evaluatingCount = rc[0].evaluating;
+
+    // "Is this actually in my codebase?" — compare each open item against the
+    // ranges in her package.json. Cheap: one query, then pure comparison.
+    const deps = await manifestDeps();
+    manifestCount = deps.size;
+    if (deps.size) {
+      matches = Object.fromEntries([...needs, ...fixed].map((t) => [
+        t.ticket_id,
+        matchRelease({ owner: t.owner, name: t.repo.split('/')[1], tag: t.tag, package_name: t.package_name }, deps),
+      ]));
+    }
   } catch (e) {
     error = e instanceof Error ? e.message : String(e);
   }
@@ -45,6 +59,6 @@ export default async function Page() {
   return (
     <Home digest={digest} needs={needs} fixed={fixed} team={members} past={past} admin={admin}
       events={events} nextRun={nextMondayRun()} repoCount={repoCount} evaluatingCount={evaluatingCount}
-      greeting={greetingIST()} />
+      greeting={greetingIST()} matches={matches} manifestCount={manifestCount} />
   );
 }

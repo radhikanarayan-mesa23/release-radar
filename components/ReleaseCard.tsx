@@ -1,6 +1,7 @@
 'use client';
 import { useState, useTransition } from 'react';
 import Chip, { priorityLabel } from './Chip';
+import type { Match } from '@/lib/manifest';
 
 export interface CardTicket {
   ticket_id: number; status: string; assignee_id: number | null; assignee: string | null;
@@ -32,9 +33,10 @@ const BAR: Record<string, string> = {
 };
 
 export default function ReleaseCard({
-  item, ticket, team = [], admin = false, compact = false,
+  item, ticket, team = [], admin = false, compact = false, match,
 }: {
-  item: CardItem; ticket?: CardTicket; team?: TeamOption[]; admin?: boolean; compact?: boolean;
+  item: CardItem; ticket?: CardTicket; team?: TeamOption[]; admin?: boolean;
+  compact?: boolean; match?: Match;
 }) {
   const [t, setT] = useState(ticket);
   const [note, setNote] = useState(ticket?.note ?? '');
@@ -98,6 +100,28 @@ export default function ReleaseCard({
             </span>
           </header>
 
+          {match && match.kind !== 'unknown' && (
+            <p className="mt-2 text-sm">
+              {match.kind === 'affects' && (
+                <span className="text-high">
+                  <b>Affects you.</b>{' '}
+                  <span className="text-fg">
+                    You have <code className="text-accent">{match.package}@{match.range}</code> —{' '}
+                    {match.behind ? `a ${match.behind} behind` : 'older than'} {item.tag}.
+                  </span>
+                </span>
+              )}
+              {match.kind === 'covered' && (
+                <span className="text-muted">
+                  <b className="text-low">Already covered.</b> Your range{' '}
+                  <code>{match.package}@{match.range}</code> allows this.
+                </span>
+              )}
+              {match.kind === 'absent' && (
+                <span className="text-muted">Not in your package.json — informational only.</span>
+              )}
+            </p>
+          )}
           <p className="mt-3 text-sm">
             <span className="text-muted">Why this colour? </span>{item.why || '—'}
             {item.confidence != null && item.priority === 'NOT_SURE' && (
